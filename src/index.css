@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  background-color: #F7F3EC;
+  color: #1C1A17;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid #8B3A2B;
+  outline-offset: 2px;
+}
+
+.lyric-textarea {
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 36px;
+  background-image: repeating-linear-gradient(to bottom, transparent, transparent 35px, #C9BFA8 35px, #C9BFA8 36px);
+  background-attachment: local;
+}
+
+::selection {
+  background: #B5614C;
+  color: #F7F3EC;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #C9BFA8;
+  border-radius: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}

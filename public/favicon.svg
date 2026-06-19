@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="6" fill="#1C1A17"/>
+  <text x="7" y="24" font-family="Georgia, serif" font-size="22" font-style="italic" fill="#F7F3EC">L</text>
+  <line x1="7" y1="27" x2="25" y2="27" stroke="#8B3A2B" stroke-width="2"/>
+</svg>

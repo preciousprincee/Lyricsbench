@@ -24,7 +24,7 @@ export default function CadenceRuler({ text }) {
         return (
           <div
             key={i}
-            className="flex items-center gap-2 h-[36px] px-2"
+            className="flex items-center gap-2 h-[48px] px-2"
           >
             {!isEmpty && (
               <>

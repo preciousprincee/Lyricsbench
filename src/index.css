@@ -26,8 +26,17 @@ html, body {
 
 .lyric-textarea {
   font-family: 'Inter', system-ui, sans-serif;
-  line-height: 36px;
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 35px, #C9BFA8 35px, #C9BFA8 36px);
+  font-size: 15px;
+  line-height: 48px;
+  padding-top: 12px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 47px,
+    #C9BFA8 47px,
+    #C9BFA8 48px
+  );
+  background-origin: content-box;
   background-attachment: local;
 }
 

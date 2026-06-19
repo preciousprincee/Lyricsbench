@@ -200,7 +200,7 @@ export default function Workspace() {
             onKeyUp={handleLyricsChange}
             onClick={handleLyricsChange}
             placeholder={"Start writing here, or ask the AI to draft something below…"}
-            className="lyric-textarea flex-1 w-full bg-transparent resize-none px-6 sm:px-10 pt-4 pb-8 text-sm sm:text-base leading-[36px] focus:outline-none placeholder:text-rule"
+            className="lyric-textarea flex-1 w-full bg-transparent resize-none px-6 sm:px-10 pb-8 text-sm sm:text-base focus:outline-none placeholder:text-rule"
             spellCheck
           />
         </div>

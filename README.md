@@ -1,109 +1,61 @@
-# LyricBench — your songwriting notebook
+# LyricBench — full-stack SaaS
 
-A local-first, PWA-ready collaborative lyric-writing tool built with React + Vite + Tailwind CSS. Powered by Groq for fast AI inference. No account, no cloud sync, no subscription.
+LyricBench started as a local-first, browser-only songwriting notebook.
+This version turns it into a real multi-user SaaS:
 
----
+- **Frontend**: the original React/Vite app (`/frontend`), now backed by
+  the API instead of `localStorage`, with Supabase Auth for sign-in/sign-up
+  and a billing UI in Settings.
+- **Backend**: a new Django + Django REST Framework API (`/backend`) that
+  verifies Supabase Auth JWTs, stores all app data in Supabase Postgres,
+  proxies AI calls to Groq server-side with per-plan quotas, handles Paystack
+  subscription billing, and ships a customized Django admin as the ops
+  console.
+- **Supabase**: hosts Postgres (the actual database Django talks to) and
+  Auth (email + Google sign-in, JWT issuance). Row data itself is fully
+  owned by Django's ORM/migrations — Supabase is providing infra, not a
+  second application layer.
 
-## What it does
+## Quick start
 
-- **Sound Bible**: a persistent style profile built through a conversational onboarding chat, or pasted in. Encodes your themes, vocabulary, imagery, rhyme habits, and flow references so the AI writes in *your* voice.
-- **Pre-write step**: per-song configuration (structure, cadence, rhyme tightness, tone, flow reference) that overrides Sound Bible defaults for that song only.
-- **Collaborative editor**: write your own lines, or ask the AI to draft a full verse, the next single line, or 3 alternatives to a specific line. Accept, try again, or dismiss.
-- **Cadence ruler**: real-time syllable count and stress-pattern dots in the left margin. Lines that break the verse's rhythmic flow are flagged in rust-red — so you can *see* why a line feels clunky.
-- **Rhyme panel**: auto-detects the last word on your current line and fetches contextually aware rhyme suggestions (perfect + slant + near), scored against rhymes already used in the song.
-- **PWA**: installable on mobile and desktop, works offline for editing existing songs.
+1. **Backend** — see `backend/README.md`. tl;dr:
+   ```bash
+   cd backend
+   python -m venv venv && source venv/bin/activate
+   pip install -r requirements.txt
+   cp .env.example .env  # fill in Supabase/Paystack/Groq values
+   python manage.py makemigrations accounts soundbible songs billing aiproxy
+   python manage.py migrate
+   python manage.py createsuperuser
+   python manage.py runserver
+   ```
 
----
+2. **Frontend**:
+   ```bash
+   cd frontend
+   npm install
+   cp .env.example .env  # VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY / VITE_API_BASE_URL
+   npm run dev
+   ```
 
-## Setup
+3. Visit `http://localhost:5173`, sign up, and you're in. Visit
+   `http://localhost:8000/admin/` (log in with the superuser you created)
+   for the ops console.
 
-```bash
-npm install
-npm run dev
-```
+## What changed from the original app
 
-Open [http://localhost:5173](http://localhost:5173).
-
-### Groq API Key
-
-1. Get a free key at [console.groq.com](https://console.groq.com)
-2. Open the app → Settings → paste your key → Save
-3. Optionally run the Test button to verify it works
-
-Your key is stored in `localStorage` only — never uploaded anywhere.
-
----
-
-## Deploy to Vercel
-
-```bash
-npm run build
-```
-
-Then push to GitHub and connect the repo in Vercel. The `vercel.json` is already configured for SPA routing and Vite output.
-
-Or use the Vercel CLI:
-
-```bash
-npx vercel --prod
-```
-
----
-
-## PWA Icons
-
-The app ships with minimal placeholder icons. To generate proper ones:
-
-```bash
-npx pwa-asset-generator public/favicon.svg public/icons --index public/index.html
-```
-
-Or drop your own `icon-192.png` and `icon-512.png` into `public/icons/`.
-
----
-
-## Tech stack
-
-| Layer | Choice |
+| Before | Now |
 |---|---|
-| Framework | React 18 + Vite 5 |
-| Styling | Tailwind CSS 3 |
-| Routing | React Router 6 |
-| AI | Groq (OpenAI-compatible API) |
-| Models | Llama 3.3 70B / 3.1 8B / Mixtral / Gemma 2 |
-| PWA | vite-plugin-pwa + Workbox |
-| Persistence | localStorage (local-first, no backend) |
-| Cadence engine | Custom offline syllable + stress estimator |
+| Songs/Sound Bible in `localStorage` | Songs/Sound Bible in Supabase Postgres, per-account, via Django API |
+| No accounts — one browser = one user | Supabase Auth accounts (email + Google), multi-device |
+| Groq API key pasted by the user in Settings | Server-side Groq key in Django, never exposed to the browser |
+| No usage limits | Free/Pro monthly generation quotas, enforced server-side |
+| No billing | Paystack checkout + card-management link, synced via webhooks |
+| No admin/ops tooling | Django admin: user management, plan overrides, usage monitoring, billing audit log |
 
----
-
-## File structure
+## Repo layout
 
 ```
-src/
-  lib/
-    cadence.js        # Syllable counting + stress patterns (offline)
-    groq.js           # Groq API client
-    promptBuilder.js  # Sound Bible + pre-write → system prompt
-    storage.js        # localStorage helpers
-  components/
-    Layout.jsx        # Nav header + outlet
-    PreWriteModal.jsx # Per-song config modal
-    CadenceRuler.jsx  # Margin syllable/stress visualizer
-    RhymePanel.jsx    # Contextual rhyme suggestions
-  pages/
-    Onboarding.jsx    # Conversational Sound Bible builder
-    SoundBible.jsx    # View/edit style profile
-    Library.jsx       # Song list
-    Workspace.jsx     # Main collaborative editor
-    Settings.jsx      # API key + model config
+backend/    Django project (config/, apps/accounts, soundbible, songs, billing, aiproxy)
+frontend/   The React app (mostly unchanged UI, new data/auth layer)
 ```
-
----
-
-## Customisation notes
-
-- **Add more Groq models**: edit the `MODELS` array in `src/pages/Settings.jsx`
-- **Change onboarding questions**: edit `ONBOARDING_SYSTEM_PROMPT` in `src/lib/promptBuilder.js`
-- **Adjust cadence sensitivity**: the `deviation >= 4` threshold in `CadenceRuler.jsx` controls when lines flag as off-rhythm
-- **Color palette**: all tokens are in `tailwind.config.js`

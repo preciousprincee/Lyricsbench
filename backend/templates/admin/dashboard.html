@@ -1,0 +1,68 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div style="padding: 10px 0;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:28px;">
+
+    <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
+      <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">MRR</div>
+      <div style="font-size:28px;font-weight:600;">{{ currency_symbol }}{{ mrr|floatformat:2 }}</div>
+      <div style="font-size:12px;color:#999;">ARR ≈ {{ currency_symbol }}{{ arr|floatformat:0 }}</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
+      <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">Active subscriptions</div>
+      <div style="font-size:28px;font-weight:600;">{{ active_subscriptions }}</div>
+      <div style="font-size:12px;color:#999;">{{ canceled_30d }} canceled in last 30d</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
+      <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">Users</div>
+      <div style="font-size:28px;font-weight:600;">{{ total_users }}</div>
+      <div style="font-size:12px;color:#999;">{{ pro_users }} pro · {{ free_users }} free · {{ conversion_rate }}% conversion</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
+      <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">New signups</div>
+      <div style="font-size:28px;font-weight:600;">{{ new_signups_7d }}</div>
+      <div style="font-size:12px;color:#999;">last 7 days · {{ new_signups_30d }} in last 30</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
+      <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">AI calls this month</div>
+      <div style="font-size:28px;font-weight:600;">{{ ai_calls_this_month }}</div>
+      <div style="font-size:12px;color:#999;">{{ ai_failures_this_month }} failed</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
+      <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">Songs written</div>
+      <div style="font-size:28px;font-weight:600;">{{ total_songs }}</div>
+    </div>
+
+  </div>
+
+  <h2 style="font-size:16px;margin-bottom:10px;">Most active users this month</h2>
+  <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #e3e3e3;border-radius:8px;overflow:hidden;">
+    <thead>
+      <tr style="background:#f7f7f7;text-align:left;">
+        <th style="padding:8px 12px;font-size:12px;color:#777;">Email</th>
+        <th style="padding:8px 12px;font-size:12px;color:#777;">AI calls</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in top_active_users %}
+      <tr style="border-top:1px solid #eee;">
+        <td style="padding:8px 12px;font-size:13px;">{{ row.profile__email }}</td>
+        <td style="padding:8px 12px;font-size:13px;">{{ row.calls }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="2" style="padding:12px;color:#999;font-size:13px;">No AI activity yet this month.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p style="font-size:12px;color:#999;margin-top:20px;">
+    MRR normalizes yearly subscriptions to a monthly figure and only counts
+    active/trialing Stripe subscriptions synced via webhook.
+  </p>
+</div>
+{% endblock %}

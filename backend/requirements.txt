@@ -1,0 +1,18 @@
+Django==5.0.9
+djangorestframework==3.15.2
+django-cors-headers==4.4.0
+psycopg2-binary==2.9.9
+dj-database-url==2.3.0
+python-dotenv==1.0.1
+PyJWT==2.9.0
+cryptography==43.0.1
+requests==2.32.3
+gunicorn==23.0.0
+gevent==24.11.1
+whitenoise==6.7.0
+django-jazzmin==3.0.1
+django-filter==24.3
+
+# --- Scaling: shared cache/throttle/quota backend across worker processes ---
+django-redis==5.4.0
+redis==5.0.8

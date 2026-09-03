@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { store } from '../lib/storage'
-import { api, ApiError } from '../lib/apiClient'
 import { getAvailableModels, getModelPreference, setModelPreference } from '../lib/localSettings'
 import { useAuth } from '../context/AuthContext'
 
@@ -9,40 +8,13 @@ const MODELS = getAvailableModels()
 
 export default function Settings() {
   const navigate = useNavigate()
-  const { summary, summaryLoading, refreshSummary } = useAuth()
+  const { summary, summaryLoading } = useAuth()
   const [model, setModel] = useState(getModelPreference())
-  const [upgrading, setUpgrading] = useState(false)
-  const [portalLoading, setPortalLoading] = useState(false)
-  const [billingError, setBillingError] = useState('')
   const [resetting, setResetting] = useState(false)
 
   function chooseModel(id) {
     setModel(id)
     setModelPreference(id)
-  }
-
-  async function upgrade(interval) {
-    setUpgrading(true)
-    setBillingError('')
-    try {
-      const { checkout_url } = await api.post('/billing/checkout/', { interval })
-      window.location.href = checkout_url
-    } catch (err) {
-      setBillingError(err instanceof ApiError ? err.message : 'Could not start checkout.')
-      setUpgrading(false)
-    }
-  }
-
-  async function openBillingPortal() {
-    setPortalLoading(true)
-    setBillingError('')
-    try {
-      const { portal_url } = await api.post('/billing/portal/', {})
-      window.location.href = portal_url
-    } catch (err) {
-      setBillingError(err instanceof ApiError ? err.message : 'Could not open billing portal.')
-      setPortalLoading(false)
-    }
   }
 
   async function resetOnboarding() {
@@ -61,7 +33,6 @@ export default function Settings() {
 
   const profile = summary?.profile
   const usage = summary?.usage
-  const isPro = profile?.plan === 'pro'
   const usagePct = usage ? Math.min(100, Math.round((usage.generations_used / Math.max(usage.generations_limit, 1)) * 100)) : 0
 
   return (
@@ -77,14 +48,9 @@ export default function Settings() {
         <p className="text-sm text-ink-soft">{profile?.email}</p>
       </section>
 
-      {/* Plan & usage */}
+      {/* Usage */}
       <section className="mb-10">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="font-medium">Plan</h2>
-          <span className={`text-xs px-2 py-0.5 rounded-full ${isPro ? 'bg-ink text-paper' : 'border border-rule text-ink-soft'}`}>
-            {isPro ? 'Pro' : 'Free'}
-          </span>
-        </div>
+        <h2 className="font-medium mb-1">AI usage</h2>
 
         {summaryLoading ? (
           <p className="text-sm text-ink-soft">Loading…</p>
@@ -102,43 +68,6 @@ export default function Settings() {
             </div>
           </div>
         ) : null}
-
-        {billingError && <p className="text-rust text-sm mt-3">{billingError}</p>}
-
-        <div className="mt-5 flex flex-wrap gap-3">
-          {!isPro && (
-            <>
-              <button
-                onClick={() => upgrade('monthly')}
-                disabled={upgrading}
-                className="bg-ink text-paper px-5 py-2.5 rounded-sm text-sm tracking-wide hover:bg-rust transition-colors disabled:opacity-50"
-              >
-                {upgrading ? 'Redirecting to Paystack…' : 'Upgrade to Pro — monthly'}
-              </button>
-              <button
-                onClick={() => upgrade('yearly')}
-                disabled={upgrading}
-                className="border border-ink px-5 py-2.5 rounded-sm text-sm hover:bg-ink hover:text-paper transition-colors disabled:opacity-50"
-              >
-                Upgrade — yearly (save more)
-              </button>
-            </>
-          )}
-          {isPro && (
-            <button
-              onClick={openBillingPortal}
-              disabled={portalLoading}
-              className="border border-ink px-5 py-2.5 rounded-sm text-sm hover:bg-ink hover:text-paper transition-colors disabled:opacity-50"
-            >
-              {portalLoading ? 'Opening…' : 'Update payment card'}
-            </button>
-          )}
-        </div>
-        {isPro && (
-          <p className="text-xs text-ink-soft mt-2">
-            To cancel, use the same link — Paystack's manage page lets you update or remove your card, which stops future renewals.
-          </p>
-        )}
       </section>
 
       {/* Model selection */}
@@ -182,7 +111,7 @@ export default function Settings() {
       {/* About */}
       <section className="pt-6 border-t border-rule">
         <p className="text-xs text-ink-soft leading-relaxed">
-          LyricBench — your songwriting notebook, synced to your account. Free plan includes {usage?.generations_limit ?? 'a monthly allowance of'} AI generations a month; Pro raises that limit substantially.
+          LyricBench — your songwriting notebook, synced to your account. Includes {usage?.generations_limit ?? 'a monthly allowance of'} AI generations a month.
         </p>
       </section>
     </div>

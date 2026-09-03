@@ -25,7 +25,6 @@ export default function Layout() {
     navigate('/login', { replace: true })
   }
 
-  const plan = summary?.profile?.plan
   const remaining = summary?.usage?.remaining
 
   return (
@@ -33,9 +32,6 @@ export default function Layout() {
       <header className="border-b border-rule px-5 sm:px-8 py-4 flex items-center justify-between sticky top-0 bg-paper/95 backdrop-blur-sm z-30">
         <Link to="/" className="flex items-baseline gap-2">
           <span className="font-display text-xl sm:text-2xl font-semibold italic">LyricBench</span>
-          {plan === 'pro' && (
-            <span className="text-[10px] uppercase tracking-wide bg-ink text-paper px-1.5 py-0.5 rounded">Pro</span>
-          )}
         </Link>
         <nav className="flex items-center gap-5 sm:gap-7">
           {navItem('/', 'Library')}

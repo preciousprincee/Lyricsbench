@@ -1,4 +1,4 @@
-import { getAccessToken, supabase } from './supabaseClient'
+import { clearToken, getToken } from './authClient'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
@@ -11,9 +11,9 @@ export class ApiError extends Error {
   }
 }
 
-async function request(path, { method = 'GET', body, params } = {}) {
-  const token = await getAccessToken()
-  if (!token) {
+async function request(path, { method = 'GET', body, params, auth = true } = {}) {
+  const token = getToken()
+  if (auth && !token) {
     throw new ApiError('Not signed in.', 401, 'not_authenticated')
   }
 
@@ -23,14 +23,14 @@ async function request(path, { method = 'GET', body, params } = {}) {
     if (qs) url += `?${qs}`
   }
 
+  const headers = { 'Content-Type': 'application/json' }
+  if (token) headers.Authorization = `Token ${token}`
+
   let res
   try {
     res = await fetch(url, {
       method,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
+      headers,
       body: body !== undefined ? JSON.stringify(body) : undefined
     })
   } catch (err) {
@@ -38,8 +38,8 @@ async function request(path, { method = 'GET', body, params } = {}) {
   }
 
   if (res.status === 401) {
-    // Session likely expired mid-flight; force a clean re-auth.
-    await supabase.auth.signOut()
+    // Token is invalid/expired mid-flight; force a clean re-auth.
+    clearToken()
     throw new ApiError('Your session expired. Please sign in again.', 401, 'session_expired')
   }
 
@@ -53,7 +53,7 @@ async function request(path, { method = 'GET', body, params } = {}) {
   }
 
   if (!res.ok) {
-    const message = data?.error?.message || `Request failed (${res.status}).`
+    const message = data?.error?.message || firstFieldError(data) || `Request failed (${res.status}).`
     const code = data?.error?.code
     throw new ApiError(message, res.status, code)
   }
@@ -61,9 +61,23 @@ async function request(path, { method = 'GET', body, params } = {}) {
   return data
 }
 
+/** DRF serializer validation errors look like {field: ["message"]} rather
+ *  than the {error: {...}} shape our custom exception handler produces
+ *  (that handler only wraps exceptions raised via raise_exception, and
+ *  some paths return validation data directly). Pull out something readable. */
+function firstFieldError(data) {
+  if (!data || typeof data !== 'object') return null
+  for (const key of Object.keys(data)) {
+    const val = data[key]
+    if (Array.isArray(val) && val.length) return val[0]
+    if (typeof val === 'string') return val
+  }
+  return null
+}
+
 export const api = {
   get: (path, params) => request(path, { method: 'GET', params }),
-  post: (path, body) => request(path, { method: 'POST', body }),
+  post: (path, body, opts = {}) => request(path, { method: 'POST', body, ...opts }),
   patch: (path, body) => request(path, { method: 'PATCH', body }),
   put: (path, body) => request(path, { method: 'PUT', body }),
   del: (path) => request(path, { method: 'DELETE' })

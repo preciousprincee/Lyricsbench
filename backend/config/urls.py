@@ -11,6 +11,5 @@ urlpatterns = [
     path("api/accounts/", include("apps.accounts.urls")),
     path("api/sound-bible/", include("apps.soundbible.urls")),
     path("api/songs/", include("apps.songs.urls")),
-    path("api/billing/", include("apps.billing.urls")),
     path("api/ai/", include("apps.aiproxy.urls")),
 ]

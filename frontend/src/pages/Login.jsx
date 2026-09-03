@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
-  const { signIn, signUp, signInWithGoogle } = useAuth()
+  const { signIn, signUp } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from?.pathname || '/'
@@ -12,36 +12,23 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [info, setInfo] = useState('')
   const [busy, setBusy] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-    setInfo('')
     setBusy(true)
     try {
       if (mode === 'signup') {
         await signUp(email, password)
-        setInfo('Check your inbox to confirm your email, then sign in.')
-        setMode('signin')
       } else {
         await signIn(email, password)
-        navigate(from, { replace: true })
       }
+      navigate(from, { replace: true })
     } catch (err) {
       setError(err.message || 'Something went wrong.')
     } finally {
       setBusy(false)
-    }
-  }
-
-  async function handleGoogle() {
-    setError('')
-    try {
-      await signInWithGoogle()
-    } catch (err) {
-      setError(err.message || 'Could not start Google sign-in.')
     }
   }
 
@@ -83,7 +70,6 @@ export default function Login() {
           </div>
 
           {error && <p className="text-rust text-sm">{error}</p>}
-          {info && <p className="text-moss text-sm">{info}</p>}
 
           <button
             type="submit"
@@ -93,19 +79,6 @@ export default function Login() {
             {busy ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}
           </button>
         </form>
-
-        <div className="flex items-center gap-3 my-5">
-          <div className="h-px bg-rule flex-1" />
-          <span className="text-xs text-ink-soft">or</span>
-          <div className="h-px bg-rule flex-1" />
-        </div>
-
-        <button
-          onClick={handleGoogle}
-          className="w-full border border-rule rounded-lg py-2.5 text-sm font-medium text-ink hover:bg-paper-dim transition"
-        >
-          Continue with Google
-        </button>
 
         <p className="text-center text-sm text-ink-soft mt-6">
           {mode === 'signin' ? "Don't have an account?" : 'Already have an account?'}{' '}

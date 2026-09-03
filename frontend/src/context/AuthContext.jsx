@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { supabase } from '../lib/supabaseClient'
+import { clearToken, getToken, setToken } from '../lib/authClient'
 import { api, ApiError } from '../lib/apiClient'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(undefined) // undefined = not checked yet, null = signed out
-  const [summary, setSummary] = useState(null) // { profile, usage, subscription }
+  // undefined = not checked yet, null = signed out, string = signed in (token)
+  const [token, setTokenState] = useState(undefined)
+  const [summary, setSummary] = useState(null) // { profile, usage }
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [authError, setAuthError] = useState('')
 
@@ -19,6 +20,8 @@ export function AuthProvider({ children }) {
       if (!(err instanceof ApiError && err.status === 401)) {
         // eslint-disable-next-line no-console
         console.error('Failed to load account summary', err)
+      } else {
+        setTokenState(null)
       }
     } finally {
       setSummaryLoading(false)
@@ -26,55 +29,59 @@ export function AuthProvider({ children }) {
   }, [])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session))
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession)
-      if (!newSession) setSummary(null)
-    })
-    return () => listener.subscription.unsubscribe()
+    setTokenState(getToken() || null)
   }, [])
 
   useEffect(() => {
-    if (session) refreshSummary()
-  }, [session, refreshSummary])
+    if (token) refreshSummary()
+    else setSummary(null)
+  }, [token, refreshSummary])
 
   async function signUp(email, password) {
     setAuthError('')
-    const { error } = await supabase.auth.signUp({ email, password })
-    if (error) { setAuthError(error.message); throw error }
+    try {
+      const data = await api.post('/accounts/register/', { email, password }, { auth: false })
+      setToken(data.token)
+      setTokenState(data.token)
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Something went wrong.'
+      setAuthError(message)
+      throw err
+    }
   }
 
   async function signIn(email, password) {
     setAuthError('')
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) { setAuthError(error.message); throw error }
-  }
-
-  async function signInWithGoogle() {
-    setAuthError('')
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin }
-    })
-    if (error) { setAuthError(error.message); throw error }
+    try {
+      const data = await api.post('/accounts/login/', { email, password }, { auth: false })
+      setToken(data.token)
+      setTokenState(data.token)
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Something went wrong.'
+      setAuthError(message)
+      throw err
+    }
   }
 
   async function signOut() {
-    await supabase.auth.signOut()
+    try {
+      await api.post('/accounts/logout/', {})
+    } catch {
+      // token may already be invalid — fine, we're clearing it either way
+    }
+    clearToken()
+    setTokenState(null)
   }
 
   const value = {
-    session,
-    isAuthenticated: !!session,
-    authLoading: session === undefined,
+    isAuthenticated: !!token,
+    authLoading: token === undefined,
     summary,
     summaryLoading,
     refreshSummary,
     authError,
     signUp,
     signIn,
-    signInWithGoogle,
     signOut
   }
 

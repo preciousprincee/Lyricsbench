@@ -38,12 +38,7 @@ class ChatView(APIView):
         if not allowed:
             return Response({
                 "error": {
-                    "message": (
-                        "You've used all your AI generations for this month on the Free plan. "
-                        "Upgrade to Pro in Settings for a much higher monthly limit."
-                        if not profile.is_pro else
-                        "You've hit this month's generation limit. It resets next month."
-                    ),
+                    "message": "You've hit this month's AI generation limit. It resets next month.",
                     "code": "quota_exceeded",
                 }
             }, status=402)

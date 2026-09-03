@@ -29,7 +29,9 @@ def month_key():
 
 
 def quota_for(profile):
-    return settings.PRO_PLAN_MONTHLY_GENERATIONS if profile.is_pro else settings.FREE_PLAN_MONTHLY_GENERATIONS
+    # No paywall/plans for the MVP — everyone gets the same monthly
+    # allowance, just enough to stop runaway/abusive usage.
+    return settings.MONTHLY_AI_GENERATIONS_LIMIT
 
 
 def current_usage(profile, month=None):

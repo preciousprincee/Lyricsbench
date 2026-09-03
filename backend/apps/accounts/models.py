@@ -1,31 +1,25 @@
 import uuid
 
+from django.conf import settings
 from django.db import models
 
 
 class Profile(models.Model):
     """
-    One row per Supabase-authenticated end user. This is the anchor for
-    everything else in the SaaS (songs, sound bible, subscription, usage).
-
-    `supabase_uid` is the `sub` claim from the verified Supabase JWT — the
-    permanent, stable identifier for that user in Supabase Auth.
+    One row per registered user, extending Django's built-in User with the
+    app-specific bits (display name, status, activity). This is the anchor
+    for everything else in the app (songs, sound bible, usage).
     """
-
-    class Plan(models.TextChoices):
-        FREE = "free", "Free"
-        PRO = "pro", "Pro"
 
     class Status(models.TextChoices):
         ACTIVE = "active", "Active"
         SUSPENDED = "suspended", "Suspended"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    supabase_uid = models.UUIDField(unique=True, db_index=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
     email = models.EmailField(unique=True)
     display_name = models.CharField(max_length=120, blank=True)
 
-    plan = models.CharField(max_length=10, choices=Plan.choices, default=Plan.FREE)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE)
 
     is_staff_note = models.CharField(
@@ -43,12 +37,8 @@ class Profile(models.Model):
     def __str__(self):
         return self.email
 
-    @property
-    def is_pro(self):
-        return self.plan == Profile.Plan.PRO and self.status == Profile.Status.ACTIVE
-
     # --- DRF/Django auth duck-typing -------------------------------------------
-    # Profile stands in for `request.user` (see SupabaseAuthentication). These
+    # Profile stands in for `request.user` (see authentication.py). These
     # properties let DRF's IsAuthenticated permission and admin-adjacent code
     # treat it like a normal auth user without subclassing AbstractUser.
     @property

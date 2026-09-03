@@ -1,16 +1,15 @@
 """
-Django settings for the LyricBench SaaS backend.
+Django settings for the LyricBench backend.
 
 Identity model:
-  - App users authenticate via Supabase Auth. The frontend gets a Supabase
-    JWT and sends it as `Authorization: Bearer <token>` on every API call.
-    apps.accounts.authentication.SupabaseAuthentication verifies that token
-    and maps it to a local `Profile` row (created on first sight).
-  - Django's own auth system (User/staff/superuser) is used ONLY for the
-    Django admin (/admin/), i.e. for the LyricBench team, not for customers.
+  - App users authenticate with Django's own auth system (User model +
+    DRF authtoken). The frontend logs in/registers against
+    apps.accounts.views (RegisterView/LoginView), gets back a token, and
+    sends it as `Authorization: Token <token>` on every API call.
+  - The same Django admin (/admin/) is used for staff/ops access, via
+    normal Django session login.
 """
 import os
-from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -21,6 +20,11 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure-dev-key-change-me")
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
+# Render sets this automatically to <service-name>.onrender.com — pick it up
+# without requiring you to hardcode/guess the hostname in env vars.
+RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 INSTALLED_APPS = [
     "jazzmin",  # must be before django.contrib.admin
@@ -31,12 +35,12 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework.authtoken",
     "corsheaders",
     "django_filters",
     "apps.accounts",
     "apps.soundbible",
     "apps.songs",
-    "apps.billing",
     "apps.aiproxy",
 ]
 
@@ -73,19 +77,17 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
-# --- Database: Supabase Postgres -------------------------------------------------
+# --- Database ---------------------------------------------------------------
+# Render (and most PaaS hosts) give you a Postgres connection string via
+# DATABASE_URL and an ephemeral filesystem — so a local SQLite file would be
+# wiped on every deploy/restart. If DATABASE_URL is set, use it; otherwise
+# fall back to local SQLite for local dev only.
 DATABASE_URL = os.getenv("DATABASE_URL", "")
-
 if DATABASE_URL:
     import dj_database_url
     DATABASES = {
-        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=not DEBUG)
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
     }
-    # Reuses pooled connections across requests instead of reconnecting to
-    # Postgres every time — critical once you're serving real concurrency.
-    # Pair this with Supabase's connection-pooling URI (port 6543, pgbouncer)
-    # rather than the direct connection (port 5432) in production.
-    DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 else:
     DATABASES = {
         "default": {
@@ -115,12 +117,12 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # --- Cache (Redis) --------------------------------------------------------------
-# This is not optional once you run more than one gunicorn worker or more
-# than one server: Django's default LocMemCache is per-process, so DRF's
-# request throttling and the AI monthly-quota counters (see apps/aiproxy)
-# would silently stop being enforced correctly across workers without a
-# shared backend. Falls back to local memory only when REDIS_URL is unset,
-# which is fine for a single-process local dev server.
+# Not optional once you run more than one gunicorn worker or more than one
+# server: Django's default LocMemCache is per-process, so DRF's request
+# throttling and the AI monthly-quota counters (see apps/aiproxy) would
+# silently stop being enforced correctly across workers without a shared
+# backend. Falls back to local memory only when REDIS_URL is unset, which
+# is fine for a single-process local dev server.
 REDIS_URL = os.getenv("REDIS_URL", "")
 if REDIS_URL:
     CACHES = {
@@ -140,7 +142,7 @@ CORS_ALLOW_CREDENTIALS = True
 # --- DRF ---------------------------------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "apps.accounts.authentication.SupabaseAuthentication",
+        "apps.accounts.authentication.ProfileTokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -158,19 +160,6 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "apps.accounts.exceptions.api_exception_handler",
 }
 
-# --- Supabase ------------------------------------------------------------------
-SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
-SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", "")
-SUPABASE_JWT_AUDIENCE = os.getenv("SUPABASE_JWT_AUDIENCE", "authenticated")
-
-# --- Paystack ----------------------------------------------------------------
-PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY", "")
-PAYSTACK_PUBLIC_KEY = os.getenv("PAYSTACK_PUBLIC_KEY", "")
-PAYSTACK_PLAN_CODE_PRO_MONTHLY = os.getenv("PAYSTACK_PLAN_CODE_PRO_MONTHLY", "")
-PAYSTACK_PLAN_CODE_PRO_YEARLY = os.getenv("PAYSTACK_PLAN_CODE_PRO_YEARLY", "")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
-
 # --- Groq (server-side only) ------------------------------------------------------
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_DEFAULT_MODEL = os.getenv("GROQ_DEFAULT_MODEL", "openai/gpt-oss-120b")
@@ -179,9 +168,10 @@ GROQ_ALLOWED_MODELS = [
     "openai/gpt-oss-20b",
 ]
 
-# --- Plan limits --------------------------------------------------------------
-FREE_PLAN_MONTHLY_GENERATIONS = int(os.getenv("FREE_PLAN_MONTHLY_GENERATIONS", "40"))
-PRO_PLAN_MONTHLY_GENERATIONS = int(os.getenv("PRO_PLAN_MONTHLY_GENERATIONS", "2000"))
+# --- AI usage limit ------------------------------------------------------------
+# No paywall/plans for the MVP — every account gets the same generous
+# monthly allowance, just enough to stop runaway/abusive usage.
+MONTHLY_AI_GENERATIONS_LIMIT = int(os.getenv("MONTHLY_AI_GENERATIONS_LIMIT", "500"))
 
 # --- Jazzmin (admin skin) ---------------------------------------------------------
 JAZZMIN_SETTINGS = {
@@ -199,10 +189,9 @@ JAZZMIN_SETTINGS = {
         "accounts.Profile": "fas fa-user",
         "soundbible.SoundBible": "fas fa-book",
         "songs.Song": "fas fa-music",
-        "billing.Subscription": "fas fa-credit-card",
         "aiproxy.AIRequestLog": "fas fa-robot",
     },
-    "order_with_respect_to": ["accounts", "songs", "soundbible", "billing", "aiproxy"],
+    "order_with_respect_to": ["accounts", "songs", "soundbible", "aiproxy"],
     "changeform_format": "horizontal_tabs",
     "topmenu_links": [
         {"name": "Growth Dashboard", "url": "admin-dashboard", "icon": "fas fa-chart-line"},

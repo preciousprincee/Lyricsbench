@@ -1,7 +1,7 @@
 // Same exported shape as the original localStorage-backed module (so pages
 // changed as little as possible), but every method now talks to the Django
-// API and is async — data lives in Postgres (via Supabase) per-account
-// instead of in the browser.
+// API and is async — data lives in Django's database per-account instead of
+// in the browser.
 import { api } from './apiClient'
 
 export const store = {

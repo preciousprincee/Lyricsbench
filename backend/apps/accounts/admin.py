@@ -1,6 +1,5 @@
 from django.contrib import admin, messages
 from django.utils.html import format_html
-from django.urls import reverse
 from django.utils import timezone
 
 from apps.aiproxy.models import AIRequestLog
@@ -31,27 +30,19 @@ class SongInline(admin.TabularInline):
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = (
-        "email", "display_name", "plan_badge", "status_badge",
+        "email", "display_name", "status_badge",
         "song_count", "usage_this_month", "created_at", "last_seen_at",
     )
-    list_filter = ("plan", "status", "created_at")
-    search_fields = ("email", "display_name", "supabase_uid")
-    readonly_fields = ("id", "supabase_uid", "created_at", "updated_at", "last_seen_at")
+    list_filter = ("status", "created_at")
+    search_fields = ("email", "display_name", "user__username")
+    readonly_fields = ("id", "user", "created_at", "updated_at", "last_seen_at")
     inlines = [SongInline]
-    actions = ["comp_to_pro", "downgrade_to_free", "suspend_accounts", "reactivate_accounts"]
+    actions = ["suspend_accounts", "reactivate_accounts"]
     fieldsets = (
-        ("Identity", {"fields": ("id", "supabase_uid", "email", "display_name")}),
-        ("Plan & status", {"fields": ("plan", "status", "is_staff_note")}),
+        ("Identity", {"fields": ("id", "user", "email", "display_name")}),
+        ("Status", {"fields": ("status", "is_staff_note")}),
         ("Timestamps", {"fields": ("created_at", "updated_at", "last_seen_at")}),
     )
-
-    @admin.display(description="Plan")
-    def plan_badge(self, obj):
-        color = "#2f7a4f" if obj.plan == Profile.Plan.PRO else "#6b7280"
-        return format_html(
-            '<span style="background:{};color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;">{}</span>',
-            color, obj.get_plan_display(),
-        )
 
     @admin.display(description="Status")
     def status_badge(self, obj):
@@ -69,16 +60,6 @@ class ProfileAdmin(admin.ModelAdmin):
     def usage_this_month(self, obj):
         month_key = timezone.now().strftime("%Y-%m")
         return AIRequestLog.objects.filter(profile=obj, month=month_key).count()
-
-    @admin.action(description="Comp selected users to Pro")
-    def comp_to_pro(self, request, queryset):
-        updated = queryset.update(plan=Profile.Plan.PRO)
-        self.message_user(request, f"{updated} user(s) upgraded to Pro.", messages.SUCCESS)
-
-    @admin.action(description="Downgrade selected users to Free")
-    def downgrade_to_free(self, request, queryset):
-        updated = queryset.update(plan=Profile.Plan.FREE)
-        self.message_user(request, f"{updated} user(s) downgraded to Free.", messages.SUCCESS)
 
     @admin.action(description="Suspend selected accounts")
     def suspend_accounts(self, request, queryset):

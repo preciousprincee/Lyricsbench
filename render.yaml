@@ -1,0 +1,63 @@
+# Render Blueprint — deploys the backend (Django) + its data stores.
+# The frontend is deployed separately on Vercel (see frontend/vercel.json
+# and frontend/.env.example) — this file only covers the API side.
+#
+# In the Render dashboard: New > Blueprint > point at this repo.
+#
+# After the first deploy finishes, set these secret env vars on
+# lyricbench-backend (not committed here on purpose):
+#   GROQ_API_KEY            — from https://console.groq.com
+#   DJANGO_SUPERUSER_EMAIL / DJANGO_SUPERUSER_PASSWORD  — your admin login
+# Then trigger a manual redeploy so the build command picks them up.
+
+databases:
+  - name: lyricbench-db
+    databaseName: lyricbench
+    user: lyricbench
+    plan: free
+
+services:
+  - type: redis
+    name: lyricbench-redis
+    plan: free
+    ipAllowList: []
+
+  - type: web
+    name: lyricbench-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate && python manage.py ensure_admin"
+    startCommand: "gunicorn -c gunicorn_conf.py config.wsgi:application"
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: "localhost,127.0.0.1"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://your-app.vercel.app"
+        # ↑ update this after your first Vercel deploy gives you the real
+        # domain (and add any custom domain too, comma-separated), then
+        # redeploy the backend for it to take effect.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lyricbench-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: lyricbench-redis
+          property: connectionString
+      - key: MONTHLY_AI_GENERATIONS_LIMIT
+        value: "500"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
+
+# Frontend is deployed separately on Vercel (see frontend/vercel.json),
+# not through this Render blueprint.

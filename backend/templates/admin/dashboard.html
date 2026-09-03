@@ -4,21 +4,8 @@
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:28px;">
 
     <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
-      <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">MRR</div>
-      <div style="font-size:28px;font-weight:600;">{{ currency_symbol }}{{ mrr|floatformat:2 }}</div>
-      <div style="font-size:12px;color:#999;">ARR ≈ {{ currency_symbol }}{{ arr|floatformat:0 }}</div>
-    </div>
-
-    <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
-      <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">Active subscriptions</div>
-      <div style="font-size:28px;font-weight:600;">{{ active_subscriptions }}</div>
-      <div style="font-size:12px;color:#999;">{{ canceled_30d }} canceled in last 30d</div>
-    </div>
-
-    <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
       <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">Users</div>
       <div style="font-size:28px;font-weight:600;">{{ total_users }}</div>
-      <div style="font-size:12px;color:#999;">{{ pro_users }} pro · {{ free_users }} free · {{ conversion_rate }}% conversion</div>
     </div>
 
     <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
@@ -59,10 +46,5 @@
       {% endfor %}
     </tbody>
   </table>
-
-  <p style="font-size:12px;color:#999;margin-top:20px;">
-    MRR normalizes yearly subscriptions to a monthly figure and only counts
-    active/trialing Stripe subscriptions synced via webhook.
-  </p>
 </div>
 {% endblock %}

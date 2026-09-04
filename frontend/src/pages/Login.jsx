@@ -84,7 +84,7 @@ export default function Login() {
           {mode === 'signin' ? "Don't have an account?" : 'Already have an account?'}{' '}
           <button
             className="text-rust font-medium hover:underline"
-            onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError(''); setInfo('') }}
+            onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError('') }}
           >
             {mode === 'signin' ? 'Sign up' : 'Sign in'}
           </button>

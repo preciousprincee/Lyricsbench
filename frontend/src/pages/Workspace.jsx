@@ -159,7 +159,7 @@ export default function Workspace() {
   if (!song && !showPreWrite) return null
 
   return (
-    <div className="flex flex-col h-[calc(100vh-57px)]">
+    <div className="flex flex-col h-[calc(100dvh-57px)]">
       {/* Title bar */}
       <div className="border-b border-rule px-5 sm:px-8 py-3 flex items-center gap-4 flex-shrink-0">
         <input

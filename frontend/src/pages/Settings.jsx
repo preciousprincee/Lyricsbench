@@ -111,7 +111,7 @@ export default function Settings() {
       {/* About */}
       <section className="pt-6 border-t border-rule">
         <p className="text-xs text-ink-soft leading-relaxed">
-          LyricBench — your songwriting notebook, synced to your account. Includes {usage?.generations_limit ?? 'a monthly allowance of'} AI generations a month.
+          LyricsBench — your songwriting notebook, synced to your account. Includes {usage?.generations_limit ?? 'a monthly allowance of'} AI generations a month.
         </p>
       </section>
     </div>

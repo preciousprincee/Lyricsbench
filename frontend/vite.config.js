@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'LyricBench — your songwriting notebook',
-        short_name: 'LyricBench',
+        name: 'LyricsBench — your songwriting notebook',
+        short_name: 'LyricsBench',
         description: 'A collaborative lyric-writing notebook with rhyme and cadence tools, built for getting unstuck.',
         theme_color: '#1C1A17',
         background_color: '#F7F3EC',

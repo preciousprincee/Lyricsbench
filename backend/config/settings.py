@@ -1,5 +1,5 @@
 """
-Django settings for the LyricBench backend.
+Django settings for the LyricsBench backend.
 
 Identity model:
   - App users authenticate with Django's own auth system (User model +
@@ -180,11 +180,11 @@ MONTHLY_AI_GENERATIONS_LIMIT = int(os.getenv("MONTHLY_AI_GENERATIONS_LIMIT", "50
 
 # --- Jazzmin (admin skin) ---------------------------------------------------------
 JAZZMIN_SETTINGS = {
-    "site_title": "LyricBench Admin",
-    "site_header": "LyricBench",
-    "site_brand": "LyricBench",
-    "welcome_sign": "LyricBench — operations console",
-    "copyright": "LyricBench",
+    "site_title": "LyricsBench Admin",
+    "site_header": "LyricsBench",
+    "site_brand": "LyricsBench",
+    "welcome_sign": "LyricsBench — operations console",
+    "copyright": "LyricsBench",
     "search_model": ["accounts.Profile", "songs.Song"],
     "show_sidebar": True,
     "navigation_expanded": True,

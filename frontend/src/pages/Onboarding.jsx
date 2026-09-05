@@ -111,7 +111,7 @@ export default function Onboarding({ onComplete }) {
     })
     await store.setOnboarded(true)
     onComplete()
-    navigate('/sound-bible')
+    navigate('/')
   }
 
   if (mode === null) {
@@ -182,7 +182,11 @@ export default function Onboarding({ onComplete }) {
 
   // Chat mode
   return (
-    <div className="min-h-screen bg-paper flex flex-col">
+    <div className="h-[100dvh] bg-paper flex flex-col overflow-hidden">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-rule flex-shrink-0">
+        <button onClick={() => setMode(null)} className="text-sm text-ink-soft hover:text-ink">← Cancel</button>
+        <span className="text-xs uppercase tracking-[0.2em] text-ink-soft">Building your Sound Bible</span>
+      </div>
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-10 sm:py-16">
         <div className="max-w-xl mx-auto flex flex-col gap-5">
           {messages.map((m, i) => (
@@ -205,7 +209,7 @@ export default function Onboarding({ onComplete }) {
           {error && <p className="text-rust text-sm">{error}</p>}
         </div>
       </div>
-      <div className="border-t border-rule px-6 py-5">
+      <div className="border-t border-rule px-6 py-5 flex-shrink-0">
         <div className="max-w-xl mx-auto flex gap-3">
           <input
             value={input}

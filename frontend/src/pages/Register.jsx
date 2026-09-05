@@ -43,7 +43,7 @@ export default function Register() {
       <div className="w-full max-w-sm bg-white border border-rule rounded-2xl shadow-notebook p-8 animate-fade-up">
         <p className="text-xs uppercase tracking-[0.2em] text-rust mb-2">Free to start</p>
         <h1 className="font-display text-3xl italic text-ink mb-1">Start your notebook</h1>
-        <p className="text-ink-soft text-sm mb-5">Create your LyricBench account — no card required.</p>
+        <p className="text-ink-soft text-sm mb-5">Create your LyricsBench account — no card required.</p>
 
         <ul className="space-y-1.5 mb-6">
           {FEATURES.map((f) => (

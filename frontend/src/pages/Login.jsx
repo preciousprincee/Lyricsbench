@@ -30,7 +30,7 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-paper flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white/60 border border-rule rounded-2xl shadow-notebook p-8 animate-fade-up">
-        <h1 className="font-display text-3xl text-ink mb-1">LyricBench</h1>
+        <h1 className="font-display text-3xl text-ink mb-1">LyricsBench</h1>
         <p className="text-ink-soft text-sm mb-6">Welcome back. Sign in to your notebook.</p>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -76,7 +76,7 @@ export default function Login() {
         </form>
 
         <p className="text-center text-sm text-ink-soft mt-6">
-          New to LyricBench?{' '}
+          New to LyricsBench?{' '}
           <Link to="/signup" className="text-rust font-medium hover:underline">
             Create an account
           </Link>

@@ -33,3 +33,16 @@ max_requests_jitter = 200
 accesslog = "-"
 errorlog = "-"
 loglevel = os.getenv("GUNICORN_LOG_LEVEL", "info")
+
+
+def post_fork(server, worker):
+    # psycopg2 is a synchronous C driver — its socket I/O is invisible to
+    # gevent's event loop on its own. Without this patch, a connection can
+    # get resumed on a different greenlet than the one that opened it after
+    # a context switch mid-query, which Django's thread-safety check (cor-
+    # rectly) rejects with "DatabaseWrapper objects created in a thread can
+    # only be used in that same thread." This must run per-worker, after
+    # fork (gunicorn's gevent worker already called gevent.monkey.patch_all()
+    # by this point) and before any DB connection is opened in that worker.
+    from psycogreen.gevent import patch_psycopg
+    patch_psycopg()

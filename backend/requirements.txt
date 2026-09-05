@@ -16,3 +16,6 @@ dj-database-url==2.3.0
 # --- Scaling: shared cache/throttle/quota backend across worker processes ---
 django-redis==5.4.0
 redis==5.0.8
+
+# --- Required for gevent workers + psycopg2 (see gunicorn_conf.py) ---
+psycogreen==1.0.2

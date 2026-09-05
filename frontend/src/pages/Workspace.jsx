@@ -29,8 +29,8 @@ export default function Workspace() {
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
   const [currentLine, setCurrentLine] = useState('')
-  const [showRhymes, setShowRhymes] = useState(true)
-  const [showCadence, setShowCadence] = useState(true)
+  const [showRhymes, setShowRhymes] = useState(false)
+  const [showCadence, setShowCadence] = useState(false)
   const [aiDraft, setAiDraft] = useState('')
   const [showDraft, setShowDraft] = useState(false)
   const textareaRef = useRef(null)
@@ -189,7 +189,7 @@ export default function Workspace() {
           <div className="fixed inset-x-0 bottom-0 z-40 max-h-[45vh] bg-paper border-t border-rule shadow-notebook overflow-hidden sm:static sm:z-auto sm:max-h-none sm:shadow-none sm:w-24 sm:border-r sm:border-t-0 sm:flex-shrink-0">
             <div className="px-2 pt-3 pb-1 border-b border-rule flex items-center justify-between">
               <span className="text-[9px] uppercase tracking-[0.15em] text-ink-soft">Cadence</span>
-              <button onClick={() => setShowCadence(false)} className="text-[10px] text-rule hover:text-ink-soft">✕</button>
+              <button onClick={() => setShowCadence(false)} aria-label="Close cadence panel" className="text-sm text-ink-soft hover:text-rust w-8 h-8 flex items-center justify-center -mr-1.5">✕</button>
             </div>
             <div className="overflow-y-auto pt-1 max-h-[calc(45vh-32px)] sm:overflow-y-hidden sm:max-h-none">
               <CadenceRuler text={lyrics} />
@@ -216,7 +216,7 @@ export default function Workspace() {
           <div className="fixed inset-x-0 bottom-0 z-40 max-h-[50vh] bg-paper border-t border-rule shadow-notebook overflow-hidden sm:static sm:z-auto sm:max-h-none sm:shadow-none sm:flex sm:w-44 sm:border-l sm:border-t-0 sm:flex-col sm:flex-shrink-0">
             <div className="px-3 pt-3 pb-1 border-b border-rule flex items-center justify-between flex-shrink-0">
               <span className="text-[9px] uppercase tracking-[0.15em] text-ink-soft">Rhymes</span>
-              <button onClick={() => setShowRhymes(false)} className="text-[10px] text-rule hover:text-ink-soft">✕</button>
+              <button onClick={() => setShowRhymes(false)} aria-label="Close rhymes panel" className="text-sm text-ink-soft hover:text-rust w-8 h-8 flex items-center justify-center -mr-1.5">✕</button>
             </div>
             <div className="overflow-y-auto scrollbar-thin px-2 py-2 max-h-[calc(50vh-32px)] sm:flex-1 sm:max-h-none">
               <RhymePanel

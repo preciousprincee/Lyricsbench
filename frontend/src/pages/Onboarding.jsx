@@ -184,7 +184,7 @@ export default function Onboarding({ onComplete }) {
   return (
     <div className="h-[100dvh] bg-paper flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-6 py-3 border-b border-rule flex-shrink-0">
-        <button onClick={() => setMode(null)} className="text-sm text-ink-soft hover:text-ink">← Cancel</button>
+        <button onClick={() => setMode(null)} className="text-sm text-ink-soft hover:text-rust border border-rule hover:border-rust rounded-sm px-3 py-1.5 -ml-1 transition-colors">← Cancel</button>
         <span className="text-xs uppercase tracking-[0.2em] text-ink-soft">Building your Sound Bible</span>
       </div>
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-10 sm:py-16">

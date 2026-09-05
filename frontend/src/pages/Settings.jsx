@@ -6,6 +6,7 @@ import { getInstallState, subscribeInstallState, promptInstall } from '../lib/in
 import { useAuth } from '../context/AuthContext'
 
 const MODELS = getAvailableModels()
+const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent)
 
 export default function Settings() {
   const navigate = useNavigate()
@@ -63,27 +64,35 @@ export default function Settings() {
         <p className="text-sm text-ink-soft">{profile?.email}</p>
       </section>
 
-      {/* Install app */}
-      {(installState.canInstall || installState.installed) && (
-        <section className="mb-10">
-          <h2 className="font-medium mb-1">App</h2>
-          {installState.installed ? (
-            <p className="text-xs text-ink-soft">Installed — you can open LyricsBench right from your home screen.</p>
-          ) : (
-            <>
-              <p className="text-xs text-ink-soft mb-3 leading-relaxed">
-                Add LyricsBench to your home screen for quicker access and a full-screen writing space.
-              </p>
-              <button
-                onClick={handleInstall}
-                className="text-sm bg-ink text-paper px-4 py-2 rounded-sm hover:bg-rust transition-colors"
-              >
-                Install app
-              </button>
-            </>
-          )}
-        </section>
-      )}
+      {/* Install app — always show something actionable here, since the
+          native prompt (canInstall) depends on Chrome's own engagement
+          heuristics and never fires at all on some browsers (iOS Safari,
+          Firefox mobile). A manual fallback means Settings is never just
+          silently empty for those cases. */}
+      <section className="mb-10">
+        <h2 className="font-medium mb-1">App</h2>
+        {installState.installed ? (
+          <p className="text-xs text-ink-soft">Installed — you can open LyricsBench right from your home screen.</p>
+        ) : installState.canInstall ? (
+          <>
+            <p className="text-xs text-ink-soft mb-3 leading-relaxed">
+              Add LyricsBench to your home screen for quicker access and a full-screen writing space.
+            </p>
+            <button
+              onClick={handleInstall}
+              className="text-sm bg-ink text-paper px-4 py-2 rounded-sm hover:bg-rust transition-colors"
+            >
+              Install app
+            </button>
+          </>
+        ) : (
+          <p className="text-xs text-ink-soft leading-relaxed">
+            {isIOS
+              ? "Add LyricsBench to your home screen: tap the Share icon in your browser's toolbar, then \"Add to Home Screen.\""
+              : 'Add LyricsBench to your home screen: open your browser\u2019s menu and look for "Add to Home screen" or "Install app."'}
+          </p>
+        )}
+      </section>
 
       {/* Usage */}
       <section className="mb-10">

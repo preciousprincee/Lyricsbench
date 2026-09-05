@@ -105,7 +105,7 @@ export default function Library() {
               ) : (
                 <button
                   onClick={() => setDeleting(song.id)}
-                  className="opacity-0 group-hover:opacity-100 text-xs text-ink-soft hover:text-rust transition-all"
+                  className="opacity-50 sm:opacity-0 sm:group-hover:opacity-100 text-xs text-ink-soft hover:text-rust transition-all"
                 >
                   ✕
                 </button>

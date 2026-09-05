@@ -14,6 +14,14 @@ export default function Layout() {
     setMenuOpen(false)
   }, [location.pathname])
 
+  // Prevent the page behind the dropdown from scrolling while it's open —
+  // without this, scrolling the (invisible, underneath) Library list while
+  // the menu is open feels broken/janky, especially on iOS.
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [menuOpen])
+
   const navItem = (to, label, onClick) => {
     const active = location.pathname === to
     return (
@@ -39,66 +47,83 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-paper text-ink flex flex-col">
-      <header className="border-b border-rule px-5 sm:px-8 py-4 flex items-center justify-between sticky top-0 bg-paper/95 backdrop-blur-sm z-30">
-        <Link to="/" className="flex items-baseline gap-2">
-          <span className="font-display text-xl sm:text-2xl font-semibold italic">LyricsBench</span>
-        </Link>
+      {/* Wrapping header + dropdown together in one sticky, relatively-
+          positioned box lets the dropdown anchor to "right below the
+          header" via top-full, regardless of the header's actual rendered
+          height (which varies by font scaling/safe-area insets) — no
+          fragile hardcoded pixel offset needed. */}
+      <div className="relative sticky top-0 z-30">
+        <header className="border-b border-rule px-5 sm:px-8 py-4 flex items-center justify-between bg-paper/95 backdrop-blur-sm">
+          <Link to="/" className="flex items-baseline gap-2">
+            <span className="font-display text-xl sm:text-2xl font-semibold italic">LyricsBench</span>
+          </Link>
 
-        {/* Desktop nav — unchanged, always visible at sm+ */}
-        <nav className="hidden sm:flex items-center gap-5 sm:gap-7">
-          {navItem('/', 'Library')}
-          {navItem('/sound-bible', 'Sound Bible')}
-          {navItem('/settings', 'Settings')}
-          {typeof remaining === 'number' && (
-            <span className="text-xs text-ink-soft border border-rule rounded-full px-2.5 py-1">
-              {remaining} AI {remaining === 1 ? 'gen' : 'gens'} left
-            </span>
-          )}
+          {/* Desktop nav — unchanged, always visible at sm+ */}
+          <nav className="hidden sm:flex items-center gap-5 sm:gap-7">
+            {navItem('/', 'Library')}
+            {navItem('/sound-bible', 'Sound Bible')}
+            {navItem('/settings', 'Settings')}
+            {typeof remaining === 'number' && (
+              <span className="text-xs text-ink-soft border border-rule rounded-full px-2.5 py-1">
+                {remaining} AI {remaining === 1 ? 'gen' : 'gens'} left
+              </span>
+            )}
+            <button
+              onClick={handleSignOut}
+              className="text-sm text-ink-soft hover:text-rust transition-colors"
+            >
+              Sign out
+            </button>
+          </nav>
+
+          {/* Mobile hamburger toggle */}
           <button
-            onClick={handleSignOut}
-            className="text-sm text-ink-soft hover:text-rust transition-colors"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            className="sm:hidden text-ink w-9 h-9 flex items-center justify-center -mr-2"
           >
-            Sign out
+            {menuOpen ? (
+              <span className="text-xl leading-none">✕</span>
+            ) : (
+              <span className="flex flex-col gap-[5px]">
+                <span className="block w-5 h-[1.5px] bg-ink" />
+                <span className="block w-5 h-[1.5px] bg-ink" />
+                <span className="block w-5 h-[1.5px] bg-ink" />
+              </span>
+            )}
           </button>
-        </nav>
+        </header>
 
-        {/* Mobile hamburger toggle */}
-        <button
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={menuOpen}
-          className="sm:hidden text-ink w-9 h-9 flex items-center justify-center -mr-2"
-        >
-          {menuOpen ? (
-            <span className="text-xl leading-none">✕</span>
-          ) : (
-            <span className="flex flex-col gap-[5px]">
-              <span className="block w-5 h-[1.5px] bg-ink" />
-              <span className="block w-5 h-[1.5px] bg-ink" />
-              <span className="block w-5 h-[1.5px] bg-ink" />
-            </span>
-          )}
-        </button>
-      </header>
+        {/* Mobile menu panel — anchored to the header's bottom edge */}
+        {menuOpen && (
+          <nav className="absolute top-full left-0 right-0 sm:hidden border-b border-rule bg-paper px-5 py-4 flex flex-col gap-4 shadow-notebook animate-fade-up">
+            {navItem('/', 'Library')}
+            {navItem('/sound-bible', 'Sound Bible')}
+            {navItem('/settings', 'Settings')}
+            {typeof remaining === 'number' && (
+              <span className="text-xs text-ink-soft border border-rule rounded-full px-2.5 py-1 self-start">
+                {remaining} AI {remaining === 1 ? 'gen' : 'gens'} left
+              </span>
+            )}
+            <button
+              onClick={handleSignOut}
+              className="text-sm text-ink-soft hover:text-rust transition-colors text-left"
+            >
+              Sign out
+            </button>
+          </nav>
+        )}
+      </div>
 
-      {/* Mobile menu panel */}
+      {/* Tap-outside-to-close backdrop — sits above page content, below
+          the header/menu (which live in the z-30 wrapper above). */}
       {menuOpen && (
-        <nav className="sm:hidden border-b border-rule bg-paper px-5 py-4 flex flex-col gap-4 sticky top-[65px] z-20 animate-fade-up">
-          {navItem('/', 'Library')}
-          {navItem('/sound-bible', 'Sound Bible')}
-          {navItem('/settings', 'Settings')}
-          {typeof remaining === 'number' && (
-            <span className="text-xs text-ink-soft border border-rule rounded-full px-2.5 py-1 self-start">
-              {remaining} AI {remaining === 1 ? 'gen' : 'gens'} left
-            </span>
-          )}
-          <button
-            onClick={handleSignOut}
-            className="text-sm text-ink-soft hover:text-rust transition-colors text-left"
-          >
-            Sign out
-          </button>
-        </nav>
+        <button
+          aria-label="Close menu"
+          onClick={() => setMenuOpen(false)}
+          className="sm:hidden fixed inset-0 z-20 bg-ink/10"
+        />
       )}
 
       <main className="flex-1">

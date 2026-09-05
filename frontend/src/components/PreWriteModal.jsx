@@ -11,6 +11,13 @@ export default function PreWriteModal({ onStart, existingPreWrite }) {
   useEffect(() => {
     store.getSoundBible().then(setBible).catch(() => {})
   }, [])
+  // Lock background scroll while this full-screen modal is open — without
+  // it, the page behind can still scroll (and on iOS Safari, rubber-banding
+  // makes the modal itself appear to jump around while doing so).
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
   const [preWrite, setPreWrite] = useState(existingPreWrite || {
     structure: STRUCTURES[0],
     cadence: CADENCES[1],

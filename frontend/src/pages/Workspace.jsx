@@ -182,14 +182,16 @@ export default function Workspace() {
       {/* Main 3-column layout */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* Left: Cadence ruler */}
+        {/* Left: Cadence ruler — inline column on sm+, bottom sheet on mobile
+            since there's no room for a permanent side column on a phone,
+            but the feature still needs to be reachable there. */}
         {showCadence && (
-          <div className="hidden sm:block w-24 border-r border-rule overflow-hidden flex-shrink-0">
+          <div className="fixed inset-x-0 bottom-0 z-40 max-h-[45vh] bg-paper border-t border-rule shadow-notebook overflow-hidden sm:static sm:z-auto sm:max-h-none sm:shadow-none sm:w-24 sm:border-r sm:border-t-0 sm:flex-shrink-0">
             <div className="px-2 pt-3 pb-1 border-b border-rule flex items-center justify-between">
               <span className="text-[9px] uppercase tracking-[0.15em] text-ink-soft">Cadence</span>
               <button onClick={() => setShowCadence(false)} className="text-[10px] text-rule hover:text-ink-soft">✕</button>
             </div>
-            <div className="overflow-y-hidden pt-1">
+            <div className="overflow-y-auto pt-1 max-h-[calc(45vh-32px)] sm:overflow-y-hidden sm:max-h-none">
               <CadenceRuler text={lyrics} />
             </div>
           </div>
@@ -209,14 +211,14 @@ export default function Workspace() {
           />
         </div>
 
-        {/* Right: Rhyme panel */}
+        {/* Right: Rhyme panel — same reasoning as Cadence above. */}
         {showRhymes && (
-          <div className="hidden md:flex w-44 border-l border-rule flex-col overflow-hidden flex-shrink-0">
+          <div className="fixed inset-x-0 bottom-0 z-40 max-h-[50vh] bg-paper border-t border-rule shadow-notebook overflow-hidden sm:static sm:z-auto sm:max-h-none sm:shadow-none sm:flex sm:w-44 sm:border-l sm:border-t-0 sm:flex-col sm:flex-shrink-0">
             <div className="px-3 pt-3 pb-1 border-b border-rule flex items-center justify-between flex-shrink-0">
               <span className="text-[9px] uppercase tracking-[0.15em] text-ink-soft">Rhymes</span>
               <button onClick={() => setShowRhymes(false)} className="text-[10px] text-rule hover:text-ink-soft">✕</button>
             </div>
-            <div className="flex-1 overflow-y-auto scrollbar-thin px-2 py-2">
+            <div className="overflow-y-auto scrollbar-thin px-2 py-2 max-h-[calc(50vh-32px)] sm:flex-1 sm:max-h-none">
               <RhymePanel
                 lyrics={lyrics}
                 currentLine={currentLine}
@@ -295,15 +297,16 @@ export default function Workspace() {
           {generating ? 'Writing…' : 'Generate ✦'}
         </button>
 
-        {/* Toggle hidden panels */}
-        <div className="hidden sm:flex gap-2">
+        {/* Toggle hidden panels — always reachable; the panels themselves
+            render as a mobile bottom sheet vs. a desktop side column. */}
+        <div className="flex gap-2">
           {!showCadence && (
             <button onClick={() => setShowCadence(true)} className="text-xs text-ink-soft hover:text-ink border border-rule rounded-sm px-2 py-1">
               cadence
             </button>
           )}
           {!showRhymes && (
-            <button onClick={() => setShowRhymes(true)} className="text-xs text-ink-soft hover:text-ink border border-rule rounded-sm px-2 py-1 hidden md:block">
+            <button onClick={() => setShowRhymes(true)} className="text-xs text-ink-soft hover:text-ink border border-rule rounded-sm px-2 py-1">
               rhymes
             </button>
           )}

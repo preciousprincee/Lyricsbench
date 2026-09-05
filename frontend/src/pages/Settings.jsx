@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { store } from '../lib/storage'
 import { getAvailableModels, getModelPreference, setModelPreference } from '../lib/localSettings'
+import { getInstallState, subscribeInstallState, promptInstall } from '../lib/installPrompt'
 import { useAuth } from '../context/AuthContext'
 
 const MODELS = getAvailableModels()
@@ -11,34 +12,19 @@ export default function Settings() {
   const { summary, summaryLoading } = useAuth()
   const [model, setModel] = useState(getModelPreference())
   const [resetting, setResetting] = useState(false)
-  const [installPrompt, setInstallPrompt] = useState(null)
-  const [installed, setInstalled] = useState(false)
+  const [installState, setInstallState] = useState(getInstallState())
 
   useEffect(() => {
-    // Chrome/Android fire this when the app is installable; we stash the
-    // event so we can trigger the native install flow from our own button
-    // instead of waiting for the browser's own mini-infobar.
-    function onBeforeInstallPrompt(e) {
-      e.preventDefault()
-      setInstallPrompt(e)
-    }
-    function onInstalled() {
-      setInstalled(true)
-      setInstallPrompt(null)
-    }
-    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt)
-    window.addEventListener('appinstalled', onInstalled)
-    return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', onInstalled)
-    }
+    // Picks up the current state immediately (in case the event was
+    // captured before this page ever mounted) and stays in sync if it
+    // changes later (install completes, or the event arrives late).
+    setInstallState(getInstallState())
+    return subscribeInstallState(setInstallState)
   }, [])
 
   async function handleInstall() {
-    if (!installPrompt) return
-    installPrompt.prompt()
-    await installPrompt.userChoice
-    setInstallPrompt(null)
+    await promptInstall()
+    setInstallState(getInstallState())
   }
 
   function chooseModel(id) {
@@ -78,10 +64,10 @@ export default function Settings() {
       </section>
 
       {/* Install app */}
-      {(installPrompt || installed) && (
+      {(installState.canInstall || installState.installed) && (
         <section className="mb-10">
           <h2 className="font-medium mb-1">App</h2>
-          {installed ? (
+          {installState.installed ? (
             <p className="text-xs text-ink-soft">Installed — you can open LyricsBench right from your home screen.</p>
           ) : (
             <>

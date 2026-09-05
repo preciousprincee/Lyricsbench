@@ -104,7 +104,7 @@ export default function RhymePanel({ lyrics, currentLine, preWrite, onInsert }) 
             >
               <span>{s.word}</span>
               {s.score > 0.4 && (
-                <span className="text-[9px] uppercase tracking-wider text-moss opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-[9px] uppercase tracking-wider text-moss opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   rhymes
                 </span>
               )}

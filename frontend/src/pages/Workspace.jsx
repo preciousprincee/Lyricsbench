@@ -108,7 +108,7 @@ export default function Workspace() {
     try {
       const reply = await groqChat(
         [{ role: 'system', content: system }, { role: 'user', content: userMsg }],
-        { temperature: 0.92, maxTokens: 400, purpose: 'generate' }
+        { temperature: 0.92, maxTokens: 700, purpose: 'generate' }
       )
       setAiDraft(reply.trim())
       setShowDraft(true)

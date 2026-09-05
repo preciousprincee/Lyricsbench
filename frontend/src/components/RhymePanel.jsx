@@ -47,7 +47,7 @@ export default function RhymePanel({ lyrics, currentLine, preWrite, onInsert }) 
     try {
       const reply = await groqChat(
         [{ role: 'system', content: system }, { role: 'user', content: prompt }],
-        { temperature: 0.85, maxTokens: 120, purpose: 'rhymes' }
+        { temperature: 0.85, maxTokens: 220, purpose: 'rhymes' }
       )
       const words = reply.split('\n').map((l) => l.trim()).filter((l) => l && /^[a-zA-Z']+$/.test(l))
       // Score against already-used end words to show rhyme chains

@@ -15,6 +15,19 @@ export function buildSystemPrompt(soundBible, preWrite) {
     'Your job is momentum: give them something concrete to react to, rewrite, or push against.'
   )
 
+  lines.push(
+    '\n--- WRITE LIKE A PERSON, NOT A LYRIC-GENERATOR ---\n' +
+    'Avoid the tells of AI-written lyrics: stock imagery (streetlights, city lights, ' +
+    'whispers in the wind, tapestries, shattered glass, chasing shadows), tidy end-of-line ' +
+    'rhymes that feel picked for the rhyme rather than the meaning, and a uniformly ' +
+    'polished, symmetrical cadence where every line resolves neatly. Real lyrics are ' +
+    'often uneven: a line runs a beat long, an image is oddly specific rather than ' +
+    'universal, a rhyme is slant or skipped entirely because the words mattered more. ' +
+    'Prefer one sharp, particular detail over three vague poetic ones. ' +
+    'Write like someone actually living the moment described, in their own words — not ' +
+    'like someone describing a moment poetically from the outside.'
+  )
+
   if (soundBible) {
     lines.push('\n--- THE WRITER\'S SOUND BIBLE (their default style identity) ---')
     if (soundBible.themes?.length) lines.push(`Recurring themes/subject matter: ${soundBible.themes.join(', ')}.`)

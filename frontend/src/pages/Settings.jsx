@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { store } from '../lib/storage'
 import { getAvailableModels, getModelPreference, setModelPreference } from '../lib/localSettings'
@@ -11,6 +11,35 @@ export default function Settings() {
   const { summary, summaryLoading } = useAuth()
   const [model, setModel] = useState(getModelPreference())
   const [resetting, setResetting] = useState(false)
+  const [installPrompt, setInstallPrompt] = useState(null)
+  const [installed, setInstalled] = useState(false)
+
+  useEffect(() => {
+    // Chrome/Android fire this when the app is installable; we stash the
+    // event so we can trigger the native install flow from our own button
+    // instead of waiting for the browser's own mini-infobar.
+    function onBeforeInstallPrompt(e) {
+      e.preventDefault()
+      setInstallPrompt(e)
+    }
+    function onInstalled() {
+      setInstalled(true)
+      setInstallPrompt(null)
+    }
+    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt)
+    window.addEventListener('appinstalled', onInstalled)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', onInstalled)
+    }
+  }, [])
+
+  async function handleInstall() {
+    if (!installPrompt) return
+    installPrompt.prompt()
+    await installPrompt.userChoice
+    setInstallPrompt(null)
+  }
 
   function chooseModel(id) {
     setModel(id)
@@ -48,6 +77,28 @@ export default function Settings() {
         <p className="text-sm text-ink-soft">{profile?.email}</p>
       </section>
 
+      {/* Install app */}
+      {(installPrompt || installed) && (
+        <section className="mb-10">
+          <h2 className="font-medium mb-1">App</h2>
+          {installed ? (
+            <p className="text-xs text-ink-soft">Installed — you can open LyricsBench right from your home screen.</p>
+          ) : (
+            <>
+              <p className="text-xs text-ink-soft mb-3 leading-relaxed">
+                Add LyricsBench to your home screen for quicker access and a full-screen writing space.
+              </p>
+              <button
+                onClick={handleInstall}
+                className="text-sm bg-ink text-paper px-4 py-2 rounded-sm hover:bg-rust transition-colors"
+              >
+                Install app
+              </button>
+            </>
+          )}
+        </section>
+      )}
+
       {/* Usage */}
       <section className="mb-10">
         <h2 className="font-medium mb-1">AI usage</h2>
@@ -74,7 +125,7 @@ export default function Settings() {
       <section className="mb-10">
         <h2 className="font-medium mb-1">Model</h2>
         <p className="text-xs text-ink-soft mb-4">
-          The AI runs on our servers via Groq — no API key needed. GPT-OSS 120B gives the best lyric quality.
+          Pick the writing style that fits your session — one leans toward more layered, considered lines; the other is quicker for rapid back-and-forth.
         </p>
         <div className="flex flex-col gap-2">
           {MODELS.map((m) => (
@@ -111,7 +162,7 @@ export default function Settings() {
       {/* About */}
       <section className="pt-6 border-t border-rule">
         <p className="text-xs text-ink-soft leading-relaxed">
-          LyricsBench — your songwriting notebook, synced to your account. Includes {usage?.generations_limit ?? 'a monthly allowance of'} AI generations a month.
+          Every line you write is saved the moment you write it, ready wherever you sign back in. When you're stuck, the AI is there to help you keep moving — not to write it for you.
         </p>
       </section>
     </div>

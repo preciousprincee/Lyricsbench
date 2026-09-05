@@ -25,6 +25,17 @@ def groq_chat(messages, model=None, temperature=0.9, max_tokens=1200, json_mode=
     }
     if json_mode:
         body["response_format"] = {"type": "json_object"}
+    if chosen_model.startswith("openai/gpt-oss"):
+        # GPT-OSS models reason internally before answering, by default at
+        # "medium" effort — and that reasoning draws from the same
+        # max_tokens budget as the actual reply. With the token budgets
+        # this app uses for a single lyric line/verse (a few hundred, not
+        # the ~1000+ these models often need at default effort), the model
+        # can spend the whole budget on invisible reasoning and return an
+        # empty message.content, which is the "AI returned an empty
+        # response" error. "low" effort keeps just enough reasoning for
+        # coherence while leaving the budget for the lyrics themselves.
+        body["reasoning_effort"] = "low"
 
     try:
         resp = requests.post(

@@ -5,6 +5,7 @@ import { store } from './lib/storage'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import Layout from './components/Layout.jsx'
 import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
 import Onboarding from './pages/Onboarding.jsx'
 import SoundBible from './pages/SoundBible.jsx'
 import Library from './pages/Library.jsx'
@@ -42,6 +43,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Register />} />
 
       <Route element={<ProtectedRoute />}>
         <Route

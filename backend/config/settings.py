@@ -46,8 +46,12 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    # CorsMiddleware must sit above anything that can return a response on
+    # its own (whitenoise, CommonMiddleware) — otherwise those responses
+    # skip CORS entirely and the browser blocks them with no server-side
+    # error to explain why.
     "corsheaders.middleware.CorsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -211,3 +215,20 @@ JAZZMIN_UI_TWEAKS = {
 }
 
 LOGIN_URL = "/admin/login/"
+
+# --- Logging ---------------------------------------------------------------
+# Without this, Django's default logging tries to email admins on unhandled
+# 500s (which does nothing — no email backend is configured) instead of
+# printing to console, so real errors were invisible in Render's log viewer.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {"handlers": ["console"], "level": "INFO"},
+    "loggers": {
+        "django": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": False},
+    },
+}

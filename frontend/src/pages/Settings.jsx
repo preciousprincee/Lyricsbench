@@ -74,7 +74,7 @@ export default function Settings() {
       <section className="mb-10">
         <h2 className="font-medium mb-1">Model</h2>
         <p className="text-xs text-ink-soft mb-4">
-          The AI runs on our servers via Groq — no API key needed. Llama 3.3 70B gives the best lyric quality.
+          The AI runs on our servers via Groq — no API key needed. GPT-OSS 120B gives the best lyric quality.
         </p>
         <div className="flex flex-col gap-2">
           {MODELS.map((m) => (

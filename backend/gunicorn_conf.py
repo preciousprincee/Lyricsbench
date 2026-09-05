@@ -12,6 +12,23 @@ open thousands of slow, mostly-idle connections at once — which is exactly
 this app's traffic shape. If you later add CPU-heavy work, move it to a
 background task queue rather than switching worker classes.
 """
+# This must run before anything else in the process imports `threading` —
+# including Django, which builds its per-thread connection storage off of
+# threading.local() the first time django.db is imported. gunicorn's gevent
+# worker also patches in init_process(), but that can run too late relative
+# to import order depending on how gunicorn loads the app, and the failure
+# mode is silent: Django's connection handler ends up keyed by the real OS
+# thread (constant for every greenlet in this one worker) instead of by
+# greenlet identity, so a connection opened by one request looks "shared"
+# with every other concurrent request — which Django's own thread-safety
+# check then correctly rejects with "DatabaseWrapper objects created in a
+# thread can only be used in that same thread." Patching here, at gunicorn
+# config load time (before fork, before the app is ever imported), removes
+# the ordering risk entirely. monkey.patch_all() is idempotent, so this is
+# safe even though the gevent worker also patches on its own.
+from gevent import monkey
+monkey.patch_all()
+
 import multiprocessing
 import os
 

@@ -43,7 +43,7 @@ export default function CadenceRuler({ text }) {
                     <StressDot key={j} stressed={s === 1} />
                   ))}
                   {line.stress.length > 16 && (
-                    <span className="text-[8px] text-rule ml-0.5">+{line.stress.length - 16}</span>
+                    <span className="text-[11px] font-semibold text-rust ml-1">+{line.stress.length - 16}</span>
                   )}
                 </span>
               </>

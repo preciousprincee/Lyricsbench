@@ -31,6 +31,8 @@ export default function Workspace() {
   const [currentLine, setCurrentLine] = useState('')
   const [showRhymes, setShowRhymes] = useState(false)
   const [showCadence, setShowCadence] = useState(false)
+  const [showCadenceHelp, setShowCadenceHelp] = useState(false)
+  const [showRhymesHelp, setShowRhymesHelp] = useState(false)
   const [aiDraft, setAiDraft] = useState('')
   const [showDraft, setShowDraft] = useState(false)
   const textareaRef = useRef(null)
@@ -188,9 +190,25 @@ export default function Workspace() {
         {showCadence && (
           <div className="fixed inset-x-0 bottom-0 z-40 max-h-[45vh] bg-paper border-t border-rule shadow-notebook overflow-hidden sm:static sm:z-auto sm:max-h-none sm:shadow-none sm:w-24 sm:border-r sm:border-t-0 sm:flex-shrink-0">
             <div className="px-2 pt-3 pb-1 border-b border-rule flex items-center justify-between">
-              <span className="text-[9px] uppercase tracking-[0.15em] text-ink-soft">Cadence</span>
+              <span className="flex items-center gap-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-ink">Cadence</span>
+                <button
+                  onClick={() => setShowCadenceHelp((v) => !v)}
+                  aria-label="What does this mean?"
+                  className="text-[10px] text-ink-soft hover:text-rust border border-rule rounded-full w-4 h-4 flex items-center justify-center flex-shrink-0"
+                >
+                  ?
+                </button>
+              </span>
               <button onClick={() => setShowCadence(false)} aria-label="Close cadence panel" className="text-sm text-ink-soft hover:text-rust w-8 h-8 flex items-center justify-center -mr-1.5">✕</button>
             </div>
+            {showCadenceHelp && (
+              <p className="text-[10px] text-ink-soft leading-relaxed px-2 py-2 border-b border-rule bg-paper-dim">
+                Number = syllables in that line. Dots = stress pattern (● stressed, ○ light).
+                A rust-colored number flags a line whose length breaks the verse's rhythm.
+                "+N" means the line has N more syllables than fit on screen.
+              </p>
+            )}
             <div className="overflow-y-auto pt-1 max-h-[calc(45vh-32px)] sm:overflow-y-hidden sm:max-h-none">
               <CadenceRuler text={lyrics} />
             </div>
@@ -215,9 +233,25 @@ export default function Workspace() {
         {showRhymes && (
           <div className="fixed inset-x-0 bottom-0 z-40 max-h-[50vh] bg-paper border-t border-rule shadow-notebook overflow-hidden sm:static sm:z-auto sm:max-h-none sm:shadow-none sm:flex sm:w-44 sm:border-l sm:border-t-0 sm:flex-col sm:flex-shrink-0">
             <div className="px-3 pt-3 pb-1 border-b border-rule flex items-center justify-between flex-shrink-0">
-              <span className="text-[9px] uppercase tracking-[0.15em] text-ink-soft">Rhymes</span>
+              <span className="flex items-center gap-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-ink">Rhymes</span>
+                <button
+                  onClick={() => setShowRhymesHelp((v) => !v)}
+                  aria-label="What does this mean?"
+                  className="text-[10px] text-ink-soft hover:text-rust border border-rule rounded-full w-4 h-4 flex items-center justify-center flex-shrink-0"
+                >
+                  ?
+                </button>
+              </span>
               <button onClick={() => setShowRhymes(false)} aria-label="Close rhymes panel" className="text-sm text-ink-soft hover:text-rust w-8 h-8 flex items-center justify-center -mr-1.5">✕</button>
             </div>
+            {showRhymesHelp && (
+              <p className="text-[10px] text-ink-soft leading-relaxed px-3 py-2 border-b border-rule bg-paper-dim flex-shrink-0">
+                Suggestions for the last word of whichever line your cursor is on. Tap a word to
+                add it. The small "rhymes" tag marks a strong match with a word you've already
+                used as a line-ending elsewhere in the song.
+              </p>
+            )}
             <div className="overflow-y-auto scrollbar-thin px-2 py-2 max-h-[calc(50vh-32px)] sm:flex-1 sm:max-h-none">
               <RhymePanel
                 lyrics={lyrics}

@@ -26,6 +26,26 @@ RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
+# --- HTTPS behind Render's proxy --------------------------------------------
+# Render terminates TLS at its own proxy and forwards requests to this app
+# as plain HTTP, adding an X-Forwarded-Proto header to say the original
+# request was HTTPS. Without telling Django to trust that header, Django
+# thinks every request is HTTP — which breaks the admin login: Django's CSRF
+# check compares the request's (wrongly-detected-as-HTTP) scheme against the
+# browser's Origin/Referer (correctly HTTPS), the two don't match, and every
+# POST — including the admin login form — is rejected with "CSRF
+# verification failed", even though nothing is actually wrong with the
+# request or the session.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
+# Separately, Django also requires the exact scheme+domain of any origin
+# that's allowed to submit cross-checked POSTs (like the admin login) to be
+# explicitly listed here — ALLOWED_HOSTS alone isn't enough for this check.
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+
 INSTALLED_APPS = [
     "jazzmin",  # must be before django.contrib.admin
     "django.contrib.admin",

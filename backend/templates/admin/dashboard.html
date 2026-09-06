@@ -1,50 +1,183 @@
 {% extends "admin/base_site.html" %}
 {% block content %}
-<div style="padding: 10px 0;">
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:28px;">
+<style>
+  .db-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:28px; }
+  .db-card { background:#fff; border:1px solid #e3e3e3; border-radius:10px; padding:16px; }
+  .db-label { font-size:11px; color:#888; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
+  .db-value { font-size:26px; font-weight:700; line-height:1.1; color:#1a1a1a; }
+  .db-sub { font-size:12px; color:#999; margin-top:4px; }
+  .db-sub.warn { color:#b3541e; }
+  .db-section { background:#fff; border:1px solid #e3e3e3; border-radius:10px; padding:18px; margin-bottom:22px; }
+  .db-section h2 { font-size:14px; margin:0 0 14px; color:#333; }
+  .db-chart-row { display:flex; align-items:flex-end; gap:4px; height:80px; }
+  .db-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; }
+  .db-bar { width:100%; max-width:22px; background:#2f6f4f; border-radius:2px 2px 0 0; min-height:2px; }
+  .db-bar.accent { background:#b3541e; }
+  .db-bar-date { font-size:9px; color:#aaa; margin-top:4px; white-space:nowrap; }
+  .db-two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width: 700px) { .db-two-col { grid-template-columns:1fr; } }
+  .db-table { width:100%; border-collapse:collapse; }
+  .db-table th { text-align:left; font-size:11px; color:#888; text-transform:uppercase; letter-spacing:.04em; padding:6px 10px; border-bottom:1px solid #eee; }
+  .db-table td { padding:8px 10px; font-size:13px; border-top:1px solid #f2f2f2; }
+  .db-badge { display:inline-block; padding:1px 8px; border-radius:10px; font-size:10px; color:#fff; }
+  .db-badge.active { background:#2f6f4f; }
+  .db-badge.suspended { background:#b3413e; }
+  .db-model-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .db-model-name { width:170px; font-size:12px; color:#555; flex-shrink:0; }
+  .db-model-track { flex:1; background:#f0f0f0; border-radius:6px; height:10px; overflow:hidden; }
+  .db-model-fill { height:100%; background:#3a6ea5; }
+  .db-model-count { width:50px; text-align:right; font-size:12px; color:#666; flex-shrink:0; }
+  .db-empty { color:#999; font-size:13px; padding:10px 0; }
+</style>
 
-    <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
-      <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">Users</div>
-      <div style="font-size:28px;font-weight:600;">{{ total_users }}</div>
+<div style="padding: 6px 0 20px;">
+
+  <!-- KPI cards -->
+  <div class="db-grid">
+    <div class="db-card">
+      <div class="db-label">Total users</div>
+      <div class="db-value">{{ total_users }}</div>
+      <div class="db-sub{% if suspended_users %} warn{% endif %}">{{ suspended_users }} suspended</div>
     </div>
-
-    <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
-      <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">New signups</div>
-      <div style="font-size:28px;font-weight:600;">{{ new_signups_7d }}</div>
-      <div style="font-size:12px;color:#999;">last 7 days · {{ new_signups_30d }} in last 30</div>
+    <div class="db-card">
+      <div class="db-label">Active this week</div>
+      <div class="db-value">{{ active_users_7d }}</div>
+      <div class="db-sub">{{ activation_rate }}% of all users</div>
     </div>
-
-    <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
-      <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">AI calls this month</div>
-      <div style="font-size:28px;font-weight:600;">{{ ai_calls_this_month }}</div>
-      <div style="font-size:12px;color:#999;">{{ ai_failures_this_month }} failed</div>
+    <div class="db-card">
+      <div class="db-label">New signups</div>
+      <div class="db-value">{{ new_signups_7d }}</div>
+      <div class="db-sub">last 7 days &middot; {{ new_signups_30d }} in 30</div>
     </div>
-
-    <div style="background:#fff;border:1px solid #e3e3e3;border-radius:8px;padding:16px;">
-      <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.04em;">Songs written</div>
-      <div style="font-size:28px;font-weight:600;">{{ total_songs }}</div>
+    <div class="db-card">
+      <div class="db-label">Songs written</div>
+      <div class="db-value">{{ total_songs }}</div>
+      <div class="db-sub">{{ songs_created_7d }} new this week</div>
     </div>
-
+    <div class="db-card">
+      <div class="db-label">AI calls</div>
+      <div class="db-value">{{ ai_calls_today }}</div>
+      <div class="db-sub">today &middot; {{ ai_calls_7d }} this week &middot; {{ ai_calls_month }} this month</div>
+    </div>
+    <div class="db-card">
+      <div class="db-label">AI failure rate</div>
+      <div class="db-value">{{ ai_failure_rate }}%</div>
+      <div class="db-sub">of this month's AI calls</div>
+    </div>
   </div>
 
-  <h2 style="font-size:16px;margin-bottom:10px;">Most active users this month</h2>
-  <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #e3e3e3;border-radius:8px;overflow:hidden;">
-    <thead>
-      <tr style="background:#f7f7f7;text-align:left;">
-        <th style="padding:8px 12px;font-size:12px;color:#777;">Email</th>
-        <th style="padding:8px 12px;font-size:12px;color:#777;">AI calls</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in top_active_users %}
-      <tr style="border-top:1px solid #eee;">
-        <td style="padding:8px 12px;font-size:13px;">{{ row.profile__email }}</td>
-        <td style="padding:8px 12px;font-size:13px;">{{ row.calls }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="2" style="padding:12px;color:#999;font-size:13px;">No AI activity yet this month.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <!-- Trend charts -->
+  <div class="db-two-col" style="margin-bottom:22px;">
+    <div class="db-section" style="margin-bottom:0;">
+      <h2>Signups — last 14 days</h2>
+      <div class="db-chart-row">
+        {% for d in signup_series %}
+        <div class="db-bar-wrap" title="{{ d.date }}: {{ d.count }}">
+          <div class="db-bar" style="height:{{ d.pct }}%;"></div>
+          <div class="db-bar-date">{{ d.date|date:"n/j" }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="db-section" style="margin-bottom:0;">
+      <h2>AI calls — last 14 days</h2>
+      <div class="db-chart-row">
+        {% for d in ai_call_series %}
+        <div class="db-bar-wrap" title="{{ d.date }}: {{ d.count }}">
+          <div class="db-bar accent" style="height:{{ d.pct }}%;"></div>
+          <div class="db-bar-date">{{ d.date|date:"n/j" }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="db-two-col">
+    <!-- Left column -->
+    <div>
+      <div class="db-section">
+        <h2>Model usage this month</h2>
+        {% for m in model_breakdown %}
+        <div class="db-model-row">
+          <div class="db-model-name">{{ m.model }}</div>
+          <div class="db-model-track"><div class="db-model-fill" style="width:{{ m.pct }}%;"></div></div>
+          <div class="db-model-count">{{ m.calls }}</div>
+        </div>
+        {% empty %}
+        <p class="db-empty">No AI calls yet this month.</p>
+        {% endfor %}
+      </div>
+
+      <div class="db-section">
+        <h2>Approaching monthly AI quota (default {{ quota_limit }}/mo — per-user overrides respected)</h2>
+        {% if quota_pressure %}
+        <table class="db-table">
+          <thead><tr><th>Email</th><th>Used</th><th>%</th></tr></thead>
+          <tbody>
+            {% for row in quota_pressure %}
+            <tr>
+              <td>{{ row.profile__email }}</td>
+              <td>{{ row.used }} / {{ row.limit }}</td>
+              <td>{{ row.pct }}%</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="db-empty">No one is close to their monthly limit right now.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div>
+      <div class="db-section">
+        <h2>Recent signups</h2>
+        {% if recent_signups %}
+        <table class="db-table">
+          <thead><tr><th>Email</th><th>Joined</th><th>Songs</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for u in recent_signups %}
+            <tr>
+              <td>{{ u.email }}</td>
+              <td>{{ u.created_at|date:"M j" }}</td>
+              <td>{{ u.song_count }}</td>
+              <td>
+                {% if u.status == "active" %}
+                  <span class="db-badge active">active</span>
+                {% else %}
+                  <span class="db-badge suspended">suspended</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="db-empty">No users yet.</p>
+        {% endif %}
+      </div>
+
+      <div class="db-section">
+        <h2>Most active users this month</h2>
+        {% if top_active_users %}
+        <table class="db-table">
+          <thead><tr><th>Email</th><th>AI calls</th></tr></thead>
+          <tbody>
+            {% for row in top_active_users %}
+            <tr>
+              <td>{{ row.profile__email }}</td>
+              <td>{{ row.calls }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="db-empty">No AI activity yet this month.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

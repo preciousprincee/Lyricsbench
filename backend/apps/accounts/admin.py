@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin, messages
 from django.utils.html import format_html
 from django.utils import timezone
@@ -31,16 +32,24 @@ class SongInline(admin.TabularInline):
 class ProfileAdmin(admin.ModelAdmin):
     list_display = (
         "email", "display_name", "status_badge",
-        "song_count", "usage_this_month", "created_at", "last_seen_at",
+        "song_count", "usage_this_month", "ai_limit_display", "created_at", "last_seen_at",
     )
     list_filter = ("status", "created_at")
     search_fields = ("email", "display_name", "user__username")
     readonly_fields = ("id", "user", "created_at", "updated_at", "last_seen_at")
     inlines = [SongInline]
-    actions = ["suspend_accounts", "reactivate_accounts"]
+    actions = ["suspend_accounts", "reactivate_accounts", "clear_ai_quota_override"]
     fieldsets = (
         ("Identity", {"fields": ("id", "user", "email", "display_name")}),
         ("Status", {"fields": ("status", "is_staff_note")}),
+        ("AI usage", {
+            "fields": ("ai_quota_override",),
+            "description": (
+                f"App-wide default is currently {settings.MONTHLY_AI_GENERATIONS_LIMIT} "
+                "generations/month. Set a value below to override it for this user only "
+                "— e.g. a higher number to comp a user, or 0 to block AI use entirely."
+            ),
+        }),
         ("Timestamps", {"fields": ("created_at", "updated_at", "last_seen_at")}),
     )
 
@@ -61,6 +70,12 @@ class ProfileAdmin(admin.ModelAdmin):
         month_key = timezone.now().strftime("%Y-%m")
         return AIRequestLog.objects.filter(profile=obj, month=month_key).count()
 
+    @admin.display(description="AI limit/mo")
+    def ai_limit_display(self, obj):
+        if obj.ai_quota_override is not None:
+            return format_html('<strong>{}</strong> (override)', obj.ai_quota_override)
+        return f"{settings.MONTHLY_AI_GENERATIONS_LIMIT} (default)"
+
     @admin.action(description="Suspend selected accounts")
     def suspend_accounts(self, request, queryset):
         updated = queryset.update(status=Profile.Status.SUSPENDED)
@@ -70,3 +85,8 @@ class ProfileAdmin(admin.ModelAdmin):
     def reactivate_accounts(self, request, queryset):
         updated = queryset.update(status=Profile.Status.ACTIVE)
         self.message_user(request, f"{updated} account(s) reactivated.", messages.SUCCESS)
+
+    @admin.action(description="Clear AI quota override (revert to app default)")
+    def clear_ai_quota_override(self, request, queryset):
+        updated = queryset.update(ai_quota_override=None)
+        self.message_user(request, f"Cleared override for {updated} account(s).", messages.SUCCESS)

@@ -29,8 +29,12 @@ def month_key():
 
 
 def quota_for(profile):
-    # No paywall/plans for the MVP — everyone gets the same monthly
-    # allowance, just enough to stop runaway/abusive usage.
+    # Per-user override (set from the admin) takes precedence; falls back
+    # to the app-wide default when not set. Everyone gets the same default
+    # for the MVP — this exists for comping specific users or throttling
+    # abuse, not a general paywall/plans system.
+    if profile.ai_quota_override is not None:
+        return profile.ai_quota_override
     return settings.MONTHLY_AI_GENERATIONS_LIMIT
 
 

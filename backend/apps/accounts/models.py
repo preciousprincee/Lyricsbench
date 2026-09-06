@@ -27,6 +27,15 @@ class Profile(models.Model):
         help_text="Internal note visible only in the admin (support context, VIP flags, etc.)"
     )
 
+    ai_quota_override = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text=(
+            "Monthly AI-generation limit for this user specifically. "
+            "Leave blank to use the app-wide default (MONTHLY_AI_GENERATIONS_LIMIT). "
+            "Set to 0 to block AI generations for this user entirely."
+        ),
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_seen_at = models.DateTimeField(null=True, blank=True)

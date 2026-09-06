@@ -205,7 +205,12 @@ JAZZMIN_SETTINGS = {
     "site_brand": "LyricsBench",
     "welcome_sign": "LyricsBench — operations console",
     "copyright": "LyricsBench",
-    "search_model": ["accounts.Profile", "songs.Song"],
+    # A single quick-search box, not two — on mobile-width screens, two
+    # side-by-side search boxes each get squeezed too narrow to read their
+    # own placeholder text. Profile lookup (by email) is the far more
+    # common admin task; song search is still available from within the
+    # Songs list page itself.
+    "search_model": "accounts.Profile",
     "show_sidebar": True,
     "navigation_expanded": True,
     "icons": {
@@ -231,7 +236,10 @@ JAZZMIN_SETTINGS = {
 }
 JAZZMIN_UI_TWEAKS = {
     "theme": "flatly",
-    "dark_mode_theme": None,
+    # Enabling this (instead of None) turns on Jazzmin's built-in light/
+    # dark toggle in the admin topbar. "darkly" is the Bootswatch dark
+    # theme Jazzmin ships support for out of the box.
+    "dark_mode_theme": "darkly",
 }
 
 LOGIN_URL = "/admin/login/"

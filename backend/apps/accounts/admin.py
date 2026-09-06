@@ -53,6 +53,18 @@ class ProfileAdmin(admin.ModelAdmin):
         ("Timestamps", {"fields": ("created_at", "updated_at", "last_seen_at")}),
     )
 
+    def has_add_permission(self, request):
+        # Profiles are always created automatically alongside a Django
+        # User — at registration (RegisterSerializer), on first
+        # authenticated request (ProfileTokenAuthentication), or via the
+        # ensure_admin management command. There's no supported "create a
+        # blank profile and attach a user later" flow: `user` is a required
+        # field but is also read-only here (it should never change after
+        # creation), so the admin's Add form has no way to supply it and
+        # saving would fail with a database-level error. Removing the Add
+        # button avoids that dead end entirely.
+        return False
+
     @admin.display(description="Status")
     def status_badge(self, obj):
         color = "#2f7a4f" if obj.status == Profile.Status.ACTIVE else "#b3413e"

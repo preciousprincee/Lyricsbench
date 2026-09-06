@@ -17,7 +17,7 @@ class AIRequestLog(models.Model):
 
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="ai_requests")
     purpose = models.CharField(max_length=30, choices=Purpose.choices, default=Purpose.OTHER)
-    model = models.CharField(max_length=100)
+    model = models.CharField("AI model", max_length=100)
     month = models.CharField(max_length=7, db_index=True)  # "2026-08"
 
     prompt_tokens_estimate = models.PositiveIntegerField(default=0)
@@ -28,6 +28,8 @@ class AIRequestLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
+        verbose_name = "AI request log"
+        verbose_name_plural = "AI request logs"
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["profile", "month"], name="airequest_profile_month_idx"),

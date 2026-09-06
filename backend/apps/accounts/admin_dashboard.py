@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.conf import settings
+from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q
 from django.db.models.functions import TruncDate
@@ -133,6 +134,13 @@ def dashboard_view(request):
     )
 
     context = {
+        # Standard Django admin context (site_header, has_permission, and
+        # crucially available_apps — the model list Jazzmin's sidebar/
+        # hamburger menu is built from). Every normal ModelAdmin page gets
+        # this automatically; a custom view like this one has to ask for it
+        # explicitly, or the chrome renders but the navigation is empty —
+        # which is exactly what was happening here.
+        **admin.site.each_context(request),
         "title": "LyricsBench admin",
         "total_users": total_users,
         "suspended_users": suspended_users,

@@ -1,0 +1,103 @@
+/*
+ * Hand-rolled dark mode for the admin, toggled by custom.js via a
+ * `dark-mode` class on <html>. We do this ourselves rather than relying
+ * on Jazzmin's dark_mode_theme setting, which has no manual toggle (it
+ * only follows the OS's prefers-color-scheme automatically) and is a
+ * known source of inconsistent, half-applied styling in Jazzmin itself.
+ * This covers both Jazzmin/AdminLTE's stock admin chrome (login, model
+ * list/change forms, sidebar) AND our own custom dashboard template
+ * (the .db-* classes), which Jazzmin's own mechanism never touches at all.
+ */
+
+/* Tells the browser this page manages light/dark itself, so mobile
+   browsers' own "force dark" accessibility auto-inversion (which
+   otherwise fights with our manual toggle and produces exactly the kind
+   of half-inverted, inconsistent look this replaces) leaves it alone. */
+html { color-scheme: light; }
+html.dark-mode { color-scheme: dark; }
+
+#lyricsbench-theme-toggle {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  z-index: 2000;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+html.dark-mode #lyricsbench-theme-toggle {
+  background: #2b2f33;
+  border-color: #444;
+  color: #f0f0f0;
+}
+
+html.dark-mode body,
+html.dark-mode .content-wrapper,
+html.dark-mode .wrapper {
+  background: #1c1e21 !important;
+  color: #e4e4e4 !important;
+}
+
+html.dark-mode .main-header,
+html.dark-mode .main-sidebar,
+html.dark-mode .brand-link,
+html.dark-mode .nav-sidebar > .nav-item > .nav-link {
+  background-color: #24262a !important;
+  border-color: #33363a !important;
+  color: #e4e4e4 !important;
+}
+
+html.dark-mode .card,
+html.dark-mode .card-body,
+html.dark-mode .card-header,
+html.dark-mode .content-header {
+  background-color: #24262a !important;
+  color: #e4e4e4 !important;
+  border-color: #33363a !important;
+}
+
+html.dark-mode table,
+html.dark-mode .table,
+html.dark-mode table th,
+html.dark-mode table td {
+  background-color: #24262a !important;
+  color: #e4e4e4 !important;
+  border-color: #33363a !important;
+}
+
+html.dark-mode a { color: #7fb2e5 !important; }
+
+html.dark-mode input,
+html.dark-mode select,
+html.dark-mode textarea {
+  background-color: #2b2f33 !important;
+  color: #e4e4e4 !important;
+  border-color: #444 !important;
+}
+
+/* Our own dashboard.html template */
+html.dark-mode .db-card,
+html.dark-mode .db-section {
+  background: #24262a !important;
+  border-color: #33363a !important;
+}
+html.dark-mode .db-value { color: #f0f0f0 !important; }
+html.dark-mode .db-label,
+html.dark-mode .db-sub,
+html.dark-mode .db-model-name,
+html.dark-mode .db-model-count,
+html.dark-mode .db-bar-date { color: #aaa !important; }
+html.dark-mode .db-table th { color: #999 !important; border-color: #333 !important; }
+html.dark-mode .db-table td { border-color: #333 !important; }
+html.dark-mode .db-model-track { background: #33363a !important; }
+html.dark-mode .db-empty { color: #888 !important; }

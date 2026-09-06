@@ -203,6 +203,8 @@ JAZZMIN_SETTINGS = {
     "site_title": "LyricsBench Admin",
     "site_header": "LyricsBench",
     "site_brand": "LyricsBench",
+    "custom_css": "admin/custom.css",
+    "custom_js": "admin/custom.js",
     "welcome_sign": "LyricsBench — operations console",
     "copyright": "LyricsBench",
     # A single quick-search box, not two — on mobile-width screens, two
@@ -236,10 +238,15 @@ JAZZMIN_SETTINGS = {
 }
 JAZZMIN_UI_TWEAKS = {
     "theme": "flatly",
-    # Enabling this (instead of None) turns on Jazzmin's built-in light/
-    # dark toggle in the admin topbar. "darkly" is the Bootswatch dark
-    # theme Jazzmin ships support for out of the box.
-    "dark_mode_theme": "darkly",
+    # Jazzmin's own dark_mode_theme mechanism has no manual toggle at all —
+    # it only auto-switches based on the device's OS-level dark-mode
+    # preference via a CSS media query, and is a known source of
+    # inconsistent/partial styling (some regions re-theme, others don't).
+    # We build our own toggle instead (custom_css/custom_js on
+    # JAZZMIN_SETTINGS above), which gives an actual clickable switch and
+    # covers our custom dashboard template too, which Jazzmin's mechanism
+    # never touches.
+    "dark_mode_theme": None,
 }
 
 LOGIN_URL = "/admin/login/"
